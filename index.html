@@ -102,6 +102,12 @@
   nav button span{font-size:20px}
   nav button.on{color:var(--rosa)}
   .carregando{text-align:center;padding:40px;color:var(--sub)}
+  .yt-off{display:none}
+  .yt-grande{max-width:640px;margin:16px auto 0;padding:0 16px}
+  .ytbox{position:relative;width:100%;padding-top:56.25%;background:#000;border-radius:14px;overflow:hidden}
+  .ytbox iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .yt-mini{position:fixed;right:10px;bottom:140px;width:176px;z-index:8;box-shadow:0 6px 24px rgba(0,0,0,.6);border-radius:10px}
+  .yt-mini .ytbox{border-radius:10px}
   .setup{padding:24px 16px;line-height:1.5}
   .setup code{background:var(--card2);padding:2px 6px;border-radius:6px}
 </style>
@@ -222,7 +228,7 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
   }
   var LOGO = "data:image/svg+xml;charset=utf-8," + encodeURIComponent("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><defs><path id=\"t\" d=\"M24,100 A76,76 0 0 1 176,100\"/><path id=\"b\" d=\"M17,100 A83,83 0 0 0 183,100\"/></defs><circle cx=\"100\" cy=\"100\" r=\"98\" fill=\"#e6e6e6\"/><circle cx=\"100\" cy=\"100\" r=\"94\" fill=\"#111\"/><circle cx=\"100\" cy=\"100\" r=\"66\" fill=\"#d7261e\"/><text font-family=\"Arial Black,Arial,Helvetica,sans-serif\" font-weight=\"900\" font-size=\"15\" fill=\"#fff\" letter-spacing=\"0.5\"><textPath href=\"#t\" startOffset=\"50%\" text-anchor=\"middle\">PIPA \u2605 ARTE \u2605 MANIA</textPath></text><text font-family=\"Arial Black,Arial,Helvetica,sans-serif\" font-weight=\"900\" font-size=\"17\" fill=\"#fff\" letter-spacing=\"1\"><textPath href=\"#b\" startOffset=\"50%\" text-anchor=\"middle\">\u2605 25/04/2022 \u2605</textPath></text><g transform=\"rotate(-18 100 96)\"><path d=\"M100 132 C88 144,114 150,102 162\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.5\" stroke-linecap=\"round\"/><path d=\"M92 141 l8 3 -7 5z M104 150 l8 -2 -4 7z\" fill=\"#ffd23f\" stroke=\"#111\" stroke-width=\"1.2\"/><polygon points=\"100,46 100,90 70,90\" fill=\"#ffd23f\"/><polygon points=\"100,46 130,90 100,90\" fill=\"#22d3ee\"/><polygon points=\"100,90 130,90 100,132\" fill=\"#ff2e88\"/><polygon points=\"100,90 100,132 70,90\" fill=\"#fff\"/><polygon points=\"100,46 130,90 100,132 70,90\" fill=\"none\" stroke=\"#111\" stroke-width=\"3\" stroke-linejoin=\"round\"/><path d=\"M100 46 V132 M70 90 H130\" stroke=\"#111\" stroke-width=\"2\"/></g><g fill=\"none\" stroke=\"#fff\" stroke-width=\"3\" stroke-linecap=\"round\"><path d=\"M138 64 a14 14 0 0 1 8 16\"/><path d=\"M143 54 a26 26 0 0 1 14 30\"/></g></svg>");
   function listaValida(c) {
-    return (Array.isArray(c && c.playlist) ? c.playlist : []).filter(function (m) { return m && m.url && Number(m.duracao) > 0; });
+    return (Array.isArray(c && c.playlist) ? c.playlist : []).filter(function (m) { return m && (m.url || m.yt) && Number(m.duracao) > 0; });
   }
   function fmtDur(seg) {
     seg = Math.max(0, Math.round(Number(seg) || 0));
@@ -244,6 +250,20 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
       t -= d;
     }
     return { i: 0, offset: 0 };
+  }
+  var ytApiPromise = null;
+  function carregarYT() {
+    if (window.YT && window.YT.Player) return Promise.resolve(window.YT);
+    if (ytApiPromise) return ytApiPromise;
+    ytApiPromise = new Promise(function (res, rej) {
+      var ant = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = function () { if (ant) { try { ant(); } catch (e) {} } res(window.YT); };
+      var sc = document.createElement("script");
+      sc.src = "https://www.youtube.com/iframe_api";
+      sc.onerror = function () { ytApiPromise = null; rej(new Error("Não foi possível carregar o YouTube.")); };
+      document.head.appendChild(sc);
+    });
+    return ytApiPromise;
   }
   function tituloDoLink(u) {
     try {
@@ -556,7 +576,7 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
         streamUrl: String(form.streamUrl || "").trim(), programa: String(form.programa || "").trim(),
         locutor: String(form.locutor || "").trim(), noAr: !!form.noAr, aoVivoVideo: !!form.aoVivoVideo,
         youtubeCanal: String(form.youtubeCanal || "").trim(), youtubeVideo: String(form.youtubeVideo || "").trim(),
-        playlist: lista.map(function (m) { return { url: String(m.url), titulo: String(m.titulo || "Música").slice(0, 120), duracao: Math.round(Number(m.duracao) || 0) }; }),
+        playlist: lista.map(function (m) { return { url: String(m.url || ""), yt: String(m.yt || ""), titulo: String(m.titulo || "Música").slice(0, 120), duracao: Math.round(Number(m.duracao) || 0) }; }),
         playlistInicio: Number(cfg.playlistInicio) || Date.now(),
         atualizadoEm: agora()
       };
@@ -567,9 +587,50 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
         .catch(function (e) { setMsg({ t: msgErro(e), tipo: "erro" }); })
         .then(function () { setSalvando(false); });
     }
+    function adicionarYouTube(yid) {
+      setTestando(true); setMsgM({ t: "Lendo o vídeo do YouTube…", tipo: "" });
+      carregarYT().then(function (YT) {
+        var caixa = document.createElement("div");
+        caixa.style.cssText = "position:fixed;left:-9999px;top:0;width:200px;height:120px;";
+        var alvo = document.createElement("div");
+        caixa.appendChild(alvo); document.body.appendChild(caixa);
+        var fim = false, pl = null, iv = null, tm = null;
+        var acabar = function (ok, dur, erro) {
+          if (fim) return; fim = true; clearTimeout(tm); clearInterval(iv);
+          var tituloYT = "";
+          try { tituloYT = (pl && pl.getVideoData && pl.getVideoData().title) || ""; } catch (e) {}
+          try { pl && pl.destroy(); } catch (e) {}
+          try { caixa.remove(); } catch (e) {}
+          setTestando(false);
+          if (!ok) { setMsgM({ t: erro || "Não consegui ler esse vídeo.", tipo: "erro" }); return; }
+          var tit = String(novoTitulo || "").trim() || tituloYT || "Música";
+          setLista(function (atual) { return atual.concat([{ yt: yid, url: "", titulo: tit, duracao: Math.round(dur) }]); });
+          setNovoUrl(""); setNovoTitulo("");
+          setMsgM({ t: "Adicionada: " + tit + " (" + fmtDur(dur) + "). Não esqueça de tocar em Salvar tudo.", tipo: "ok" });
+        };
+        tm = setTimeout(function () { acabar(false, 0, "O YouTube demorou para responder. Tente de novo."); }, 25000);
+        iv = setInterval(function () {
+          try { var d = pl && pl.getDuration && pl.getDuration(); if (d > 0) acabar(true, d); } catch (e) {}
+        }, 500);
+        pl = new YT.Player(alvo, {
+          videoId: yid, width: 200, height: 120,
+          playerVars: { mute: 1, autoplay: 1, controls: 0, playsinline: 1 },
+          events: {
+            onReady: function (e) { try { e.target.mute(); e.target.playVideo(); } catch (x) {} },
+            onError: function (e) {
+              var c = e && e.data;
+              acabar(false, 0, (c === 101 || c === 150) ? "Esse vídeo foi bloqueado pelo dono para tocar fora do YouTube. Escolha outro vídeo da mesma música." : "Vídeo não encontrado ou privado.");
+            }
+          }
+        });
+      }).catch(function (err) { setTestando(false); setMsgM({ t: err.message, tipo: "erro" }); });
+    }
     function adicionarMusica() {
       var bruto = ajustarLink(novoUrl);
       if (!bruto) { setMsgM({ t: "Cole o link da música.", tipo: "erro" }); return; }
+      var yid = /youtu\.?be/i.test(bruto) ? ytId(bruto) : null;
+      if (yid) { adicionarYouTube(yid); return; }
+      if (/youtu\.?be/i.test(bruto)) { setMsgM({ t: "Não reconheci esse link do YouTube. Use o link de um vídeo (Compartilhar → Copiar link).", tipo: "erro" }); return; }
       var abs;
       try { abs = new URL(bruto, location.href).href; } catch (e) { setMsgM({ t: "Link inválido.", tipo: "erro" }); return; }
       if (location.protocol === "https:" && /^http:/i.test(abs)) { setMsgM({ t: "O link precisa começar com https:// (links http são bloqueados).", tipo: "erro" }); return; }
@@ -581,7 +642,7 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
         setTestando(false);
         if (!ok) { setMsgM({ t: "Esse link não tocou. Use um link direto de arquivo de áudio (.mp3), por exemplo um MP3 enviado para o GitHub.", tipo: "erro" }); return; }
         var tit = String(novoTitulo || "").trim() || tituloDoLink(abs);
-        setLista(lista.concat([{ url: abs, titulo: tit, duracao: Math.round(dur) }]));
+        setLista(function (atual) { return atual.concat([{ url: abs, yt: "", titulo: tit, duracao: Math.round(dur) }]); });
         setNovoUrl(""); setNovoTitulo("");
         setMsgM({ t: "Adicionada: " + tit + " (" + fmtDur(dur) + "). Não esqueça de tocar em Salvar tudo.", tipo: "ok" });
       };
@@ -640,19 +701,19 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
       ),
       h("div", { className: "card" },
         h("div", { className: "titulo" }, "🎵 Músicas da rádio"),
-        h("div", { className: "sub" }, "Cole links diretos de MP3. Todos os ouvintes escutam a mesma música ao mesmo tempo, em sequência, sem parar. Para usar este modo, deixe o \"Link do stream de áudio\" em branco."),
-        h("label", null, "Link da música (.mp3)"),
-        h("input", { type: "url", value: novoUrl, placeholder: "https://honorio285-dev.github.io/radio-artmania/musica.mp3", onChange: function (e) { setNovoUrl(e.target.value); } }),
+        h("div", { className: "sub" }, "Cole links do YouTube ou de arquivos MP3. Todos os ouvintes escutam a mesma música ao mesmo tempo, em sequência, sem parar. Para usar este modo, deixe o \"Link do stream de áudio\" em branco."),
+        h("label", null, "Link da música (YouTube ou .mp3)"),
+        h("input", { type: "url", value: novoUrl, placeholder: "https://youtu.be/…  ou  https://…/musica.mp3", onChange: function (e) { setNovoUrl(e.target.value); } }),
         h("label", null, "Nome da música (opcional)"),
         h("input", { type: "text", value: novoTitulo, maxLength: 120, placeholder: "Ex.: Artista - Música", onChange: function (e) { setNovoTitulo(e.target.value); } }),
         h("button", { className: "btn ciano mt", type: "button", disabled: testando, onClick: adicionarMusica }, testando ? "Testando…" : "➕ Adicionar música"),
         msgM.t ? h("div", { className: "msg " + msgM.tipo }, msgM.t) : null,
         lista.length ? h("div", { className: "sub", style: { marginTop: 14 } }, lista.length + " música(s) · " + fmtDur(lista.reduce(function (t, m) { return t + Number(m.duracao || 0); }, 0)) + " no total") : null,
         lista.map(function (m, i) {
-          return h("div", { key: i + m.url, style: { display: "flex", alignItems: "center", gap: 8, padding: "10px 0", borderBottom: "1px solid var(--borda)" } },
+          return h("div", { key: i + (m.url || m.yt), style: { display: "flex", alignItems: "center", gap: 8, padding: "10px 0", borderBottom: "1px solid var(--borda)" } },
             h("div", { style: { flex: 1, minWidth: 0 } },
               h("div", { style: { fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, (i + 1) + ". " + (m.titulo || "Música")),
-              h("div", { className: "sub" }, fmtDur(m.duracao))),
+              h("div", { className: "sub" }, (m.yt ? "▶ YouTube · " : "🎧 MP3 · ") + fmtDur(m.duracao))),
             h("button", { type: "button", className: "btn sec", style: { width: 40, padding: 8 }, onClick: function () { moverMusica(i, -1); } }, "▲"),
             h("button", { type: "button", className: "btn sec", style: { width: 40, padding: 8 }, onClick: function () { moverMusica(i, 1); } }, "▼"),
             h("button", { type: "button", className: "btn sec", style: { width: 40, padding: 8 }, onClick: function () { removerMusica(i); } }, "🗑"));
@@ -683,6 +744,13 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
     var audioRef = useRef(null);
     var cfgRef = useRef(cfg); cfgRef.current = cfg;
     var modoRef = useRef(""), idxRef = useRef(0), errosRef = useRef(0);
+    var ytRef = useRef(null), ytBoxRef = useRef(null);
+    var s10 = useState(false), ytAtivo = s10[0], setYtAtivo = s10[1];
+    function destruirYT() {
+      if (ytRef.current) { try { ytRef.current.destroy(); } catch (e) {} ytRef.current = null; }
+      if (ytBoxRef.current) ytBoxRef.current.innerHTML = "";
+    }
+    function pararYT() { destruirYT(); setYtAtivo(false); }
     var admin = !!(user && isAdminEmail(user.email));
 
     useEffect(function () {
@@ -714,6 +782,31 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
       setMusicaAtual(m.titulo || "Música");
       setCarregando(true);
       var off = pos.offset;
+      if (m.yt) {
+        try { a.pause(); a.removeAttribute("src"); a.load(); } catch (e) {}
+        setYtAtivo(true);
+        carregarYT().then(function (YT) {
+          if (modoRef.current !== "playlist" || idxRef.current !== pos.i) return;
+          destruirYT();
+          var alvo = document.createElement("div");
+          ytBoxRef.current.appendChild(alvo);
+          ytRef.current = new YT.Player(alvo, {
+            videoId: m.yt, width: "100%", height: "100%",
+            playerVars: { autoplay: 1, playsinline: 1, start: Math.floor(off), rel: 0 },
+            events: {
+              onReady: function (e) { try { e.target.playVideo(); } catch (x) {} },
+              onStateChange: function (e) {
+                if (e.data === 1) { setTocando(true); setCarregando(false); errosRef.current = 0; }
+                else if (e.data === 3) setCarregando(true);
+                else if (e.data === 0) proxima();
+              },
+              onError: function () { if (!pularComErro()) { setTocando(false); setCarregando(false); } }
+            }
+          });
+        }).catch(function (err) { setCarregando(false); alert(err.message); });
+        return true;
+      }
+      pararYT();
       a.src = m.url;
       if (off > 1) {
         a.addEventListener("loadedmetadata", function () {
@@ -748,7 +841,7 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
         if (!tocarPlaylist()) alert("A rádio ainda não foi configurada.");
         return;
       }
-      modoRef.current = "stream"; setMusicaAtual("");
+      modoRef.current = "stream"; setMusicaAtual(""); pararYT();
       a.src = url;
       setCarregando(true);
       var pr = a.play();
@@ -758,6 +851,7 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
     function parar() {
       var a = audioRef.current; if (!a) return;
       modoRef.current = "";
+      pararYT();
       a.pause(); a.removeAttribute("src"); a.load();
       setTocando(false); setCarregando(false); setMusicaAtual("");
     }
@@ -786,6 +880,8 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
       }),
       h(Header, { cfg: cfg }),
       cfgErro ? h("div", { className: "aviso erro" }, cfgErro) : null,
+      h("div", { className: !ytAtivo ? "yt-off" : (aba === "radio" ? "yt-grande" : "yt-mini") },
+        h("div", { className: "ytbox", ref: ytBoxRef })),
       h("main", { className: "conteudo" }, tela),
       aba !== "radio" && (tocando || carregando) ? h("div", { className: "mini" }, h("div", { className: "in" },
         h("button", { onClick: toggle, "aria-label": "Pausar" }, PAUSE),
