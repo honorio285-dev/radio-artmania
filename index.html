@@ -221,6 +221,45 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
     });
   }
   var LOGO = "data:image/svg+xml;charset=utf-8," + encodeURIComponent("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><defs><path id=\"t\" d=\"M24,100 A76,76 0 0 1 176,100\"/><path id=\"b\" d=\"M17,100 A83,83 0 0 0 183,100\"/></defs><circle cx=\"100\" cy=\"100\" r=\"98\" fill=\"#e6e6e6\"/><circle cx=\"100\" cy=\"100\" r=\"94\" fill=\"#111\"/><circle cx=\"100\" cy=\"100\" r=\"66\" fill=\"#d7261e\"/><text font-family=\"Arial Black,Arial,Helvetica,sans-serif\" font-weight=\"900\" font-size=\"15\" fill=\"#fff\" letter-spacing=\"0.5\"><textPath href=\"#t\" startOffset=\"50%\" text-anchor=\"middle\">PIPA \u2605 ARTE \u2605 MANIA</textPath></text><text font-family=\"Arial Black,Arial,Helvetica,sans-serif\" font-weight=\"900\" font-size=\"17\" fill=\"#fff\" letter-spacing=\"1\"><textPath href=\"#b\" startOffset=\"50%\" text-anchor=\"middle\">\u2605 25/04/2022 \u2605</textPath></text><g transform=\"rotate(-18 100 96)\"><path d=\"M100 132 C88 144,114 150,102 162\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.5\" stroke-linecap=\"round\"/><path d=\"M92 141 l8 3 -7 5z M104 150 l8 -2 -4 7z\" fill=\"#ffd23f\" stroke=\"#111\" stroke-width=\"1.2\"/><polygon points=\"100,46 100,90 70,90\" fill=\"#ffd23f\"/><polygon points=\"100,46 130,90 100,90\" fill=\"#22d3ee\"/><polygon points=\"100,90 130,90 100,132\" fill=\"#ff2e88\"/><polygon points=\"100,90 100,132 70,90\" fill=\"#fff\"/><polygon points=\"100,46 130,90 100,132 70,90\" fill=\"none\" stroke=\"#111\" stroke-width=\"3\" stroke-linejoin=\"round\"/><path d=\"M100 46 V132 M70 90 H130\" stroke=\"#111\" stroke-width=\"2\"/></g><g fill=\"none\" stroke=\"#fff\" stroke-width=\"3\" stroke-linecap=\"round\"><path d=\"M138 64 a14 14 0 0 1 8 16\"/><path d=\"M143 54 a26 26 0 0 1 14 30\"/></g></svg>");
+  function listaValida(c) {
+    return (Array.isArray(c && c.playlist) ? c.playlist : []).filter(function (m) { return m && m.url && Number(m.duracao) > 0; });
+  }
+  function fmtDur(seg) {
+    seg = Math.max(0, Math.round(Number(seg) || 0));
+    var hh = Math.floor(seg / 3600), mm = Math.floor((seg % 3600) / 60), ss = seg % 60;
+    return (hh ? hh + ":" + (mm < 10 ? "0" : "") : "") + mm + ":" + (ss < 10 ? "0" : "") + ss;
+  }
+  // Calcula qual música deve estar tocando AGORA (todos os ouvintes ouvem a mesma)
+  function posicaoAtual(lista, inicioMs) {
+    var total = lista.reduce(function (t, m) { return t + Number(m.duracao); }, 0);
+    if (!total) return null;
+    var t = ((Date.now() - (Number(inicioMs) || 0)) / 1000) % total;
+    if (t < 0) t += total;
+    for (var i = 0; i < lista.length; i++) {
+      var d = Number(lista[i].duracao);
+      if (t < d) {
+        if (d - t < 2) return { i: (i + 1) % lista.length, offset: 0 };
+        return { i: i, offset: t };
+      }
+      t -= d;
+    }
+    return { i: 0, offset: 0 };
+  }
+  function tituloDoLink(u) {
+    try {
+      var n = decodeURIComponent(String(u).split("?")[0].split("#")[0].split("/").pop() || "");
+      n = n.replace(/\.[a-z0-9]{2,4}$/i, "").replace(/[_]+/g, " ").trim();
+      return n || "Música";
+    } catch (e) { return "Música"; }
+  }
+  function ajustarLink(u) {
+    var s = String(u || "").trim();
+    var g = s.match(/drive\.google\.com\/file\/d\/([\w-]+)/);
+    if (g) return "https://drive.google.com/uc?export=download&id=" + g[1];
+    if (/dropbox\.com/.test(s)) return s.replace(/([?&])dl=0/, "$1raw=1").replace(/([?&])dl=1/, "$1raw=1");
+    return s;
+  }
+
   var PLAY = h("svg", { viewBox: "0 0 24 24" }, h("path", { d: "M8 5v14l11-7z" }));
   var PAUSE = h("svg", { viewBox: "0 0 24 24" }, h("path", { d: "M6 5h4v14H6zM14 5h4v14h-4z" }));
 
@@ -260,10 +299,11 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
           p.tocando || p.carregando ? PAUSE : PLAY),
         h("div", { className: "programa" }, cfg.programa || "Rádio Artmania"),
         h("div", { className: "sub", style: { marginTop: 4 } }, cfg.locutor ? "com " + cfg.locutor : "Arte, música e cultura 24h"),
+        p.musicaAtual ? h("div", { style: { marginTop: 10, fontWeight: 700, color: "var(--ciano)" } }, "♪ " + p.musicaAtual) : null,
         p.carregando ? h("div", { className: "sub mt" }, "Conectando…")
           : p.tocando ? h("div", { className: "ondas" }, h("i"), h("i"), h("i"), h("i"), h("i"))
           : null,
-        !cfg.streamUrl ? h("div", { className: "msg erro" }, "A rádio ainda não foi configurada (aba Admin).") : null
+        (!cfg.streamUrl && listaValida(cfg).length === 0) ? h("div", { className: "msg erro" }, "A rádio ainda não foi configurada (aba Admin).") : null
       ),
       temVideo ? h("div", { className: "card" },
         h("div", { className: "titulo" }, "🎥 Ao vivo em vídeo"),
@@ -470,13 +510,20 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
     var s3 = useState({ t: "", tipo: "" }), msg = s3[0], setMsg = s3[1];
     var s4 = useState([]), fila = s4[0], setFila = s4[1];
     var s5 = useState(false), salvando = s5[0], setSalvando = s5[1];
+    var s6 = useState([]), lista = s6[0], setLista = s6[1];
+    var s7 = useState(""), novoUrl = s7[0], setNovoUrl = s7[1];
+    var s8 = useState(""), novoTitulo = s8[0], setNovoTitulo = s8[1];
+    var s9 = useState(false), testando = s9[0], setTestando = s9[1];
+    var s10 = useState({ t: "", tipo: "" }), msgM = s10[0], setMsgM = s10[1];
 
     useEffect(function () {
+      if (!p.cfgPronto) return;
+      if (form === null) setLista(Array.isArray(cfg.playlist) ? cfg.playlist.slice() : []);
       if (form === null) setForm({
         streamUrl: cfg.streamUrl || "", programa: cfg.programa || "", locutor: cfg.locutor || "",
         noAr: !!cfg.noAr, aoVivoVideo: !!cfg.aoVivoVideo, youtubeCanal: cfg.youtubeCanal || "", youtubeVideo: cfg.youtubeVideo || ""
       });
-    }, [cfg]);
+    }, [cfg, p.cfgPronto]);
     useEffect(function () {
       if (!p.admin) return;
       db.collection("config").doc("privado").get().then(function (d) {
@@ -509,6 +556,8 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
         streamUrl: String(form.streamUrl || "").trim(), programa: String(form.programa || "").trim(),
         locutor: String(form.locutor || "").trim(), noAr: !!form.noAr, aoVivoVideo: !!form.aoVivoVideo,
         youtubeCanal: String(form.youtubeCanal || "").trim(), youtubeVideo: String(form.youtubeVideo || "").trim(),
+        playlist: lista.map(function (m) { return { url: String(m.url), titulo: String(m.titulo || "Música").slice(0, 120), duracao: Math.round(Number(m.duracao) || 0) }; }),
+        playlistInicio: Number(cfg.playlistInicio) || Date.now(),
         atualizadoEm: agora()
       };
       Promise.all([
@@ -517,6 +566,42 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
       ]).then(function () { setMsg({ t: "Salvo! Já aparece para todos os ouvintes.", tipo: "ok" }); })
         .catch(function (e) { setMsg({ t: msgErro(e), tipo: "erro" }); })
         .then(function () { setSalvando(false); });
+    }
+    function adicionarMusica() {
+      var bruto = ajustarLink(novoUrl);
+      if (!bruto) { setMsgM({ t: "Cole o link da música.", tipo: "erro" }); return; }
+      var abs;
+      try { abs = new URL(bruto, location.href).href; } catch (e) { setMsgM({ t: "Link inválido.", tipo: "erro" }); return; }
+      if (location.protocol === "https:" && /^http:/i.test(abs)) { setMsgM({ t: "O link precisa começar com https:// (links http são bloqueados).", tipo: "erro" }); return; }
+      setTestando(true); setMsgM({ t: "Testando o link…", tipo: "" });
+      var au = new Audio(), fim = false;
+      var acabar = function (ok, dur) {
+        if (fim) return; fim = true; clearTimeout(tm);
+        try { au.removeAttribute("src"); au.load(); } catch (e) {}
+        setTestando(false);
+        if (!ok) { setMsgM({ t: "Esse link não tocou. Use um link direto de arquivo de áudio (.mp3), por exemplo um MP3 enviado para o GitHub.", tipo: "erro" }); return; }
+        var tit = String(novoTitulo || "").trim() || tituloDoLink(abs);
+        setLista(lista.concat([{ url: abs, titulo: tit, duracao: Math.round(dur) }]));
+        setNovoUrl(""); setNovoTitulo("");
+        setMsgM({ t: "Adicionada: " + tit + " (" + fmtDur(dur) + "). Não esqueça de tocar em Salvar tudo.", tipo: "ok" });
+      };
+      var tm = setTimeout(function () { acabar(false); }, 25000);
+      au.preload = "metadata";
+      au.onloadedmetadata = function () {
+        var d = au.duration;
+        if (!isFinite(d) || !d) { fim = true; clearTimeout(tm); setTestando(false); setMsgM({ t: "Esse link é uma transmissão ao vivo, não uma música. Cole ele no campo \"Link do stream de áudio\".", tipo: "erro" }); return; }
+        acabar(true, d);
+      };
+      au.onerror = function () { acabar(false); };
+      au.src = abs;
+    }
+    function moverMusica(i, dir) {
+      var j = i + dir; if (j < 0 || j >= lista.length) return;
+      var n = lista.slice(); var t = n[i]; n[i] = n[j]; n[j] = t; setLista(n);
+    }
+    function removerMusica(i) {
+      if (!confirm("Tirar \"" + (lista[i].titulo || "Música") + "\" da rádio?")) return;
+      var n = lista.slice(); n.splice(i, 1); setLista(n);
     }
     function convidarWhats() {
       var l = String(convite || "").trim();
@@ -538,7 +623,7 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
     return h("div", null,
       h("div", { className: "card" },
         h("div", { className: "titulo" }, "🎙 Transmissão"),
-        campo("streamUrl", "Link do stream de áudio", "https://stream.zeno.fm/…", "url"),
+        campo("streamUrl", "Link do stream de áudio (deixe em branco para usar as Músicas da rádio)", "https://…", "url"),
         campo("programa", "Nome do programa atual", "Ex.: Manhã Artmania"),
         campo("locutor", "Locutor(a)", "Ex.: André"),
         marca("noAr", "Estou AO VIVO no áudio (mostra \"NO AR\")"),
@@ -552,6 +637,27 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
         h("button", { className: "btn verde mt", type: "button", onClick: convidarWhats }, "Convidar pelo WhatsApp"),
         h("button", { className: "btn mt", disabled: salvando, onClick: salvar }, salvando ? "Salvando…" : "💾 Salvar tudo"),
         msg.t ? h("div", { className: "msg " + msg.tipo }, msg.t) : null
+      ),
+      h("div", { className: "card" },
+        h("div", { className: "titulo" }, "🎵 Músicas da rádio"),
+        h("div", { className: "sub" }, "Cole links diretos de MP3. Todos os ouvintes escutam a mesma música ao mesmo tempo, em sequência, sem parar. Para usar este modo, deixe o \"Link do stream de áudio\" em branco."),
+        h("label", null, "Link da música (.mp3)"),
+        h("input", { type: "url", value: novoUrl, placeholder: "https://honorio285-dev.github.io/radio-artmania/musica.mp3", onChange: function (e) { setNovoUrl(e.target.value); } }),
+        h("label", null, "Nome da música (opcional)"),
+        h("input", { type: "text", value: novoTitulo, maxLength: 120, placeholder: "Ex.: Artista - Música", onChange: function (e) { setNovoTitulo(e.target.value); } }),
+        h("button", { className: "btn ciano mt", type: "button", disabled: testando, onClick: adicionarMusica }, testando ? "Testando…" : "➕ Adicionar música"),
+        msgM.t ? h("div", { className: "msg " + msgM.tipo }, msgM.t) : null,
+        lista.length ? h("div", { className: "sub", style: { marginTop: 14 } }, lista.length + " música(s) · " + fmtDur(lista.reduce(function (t, m) { return t + Number(m.duracao || 0); }, 0)) + " no total") : null,
+        lista.map(function (m, i) {
+          return h("div", { key: i + m.url, style: { display: "flex", alignItems: "center", gap: 8, padding: "10px 0", borderBottom: "1px solid var(--borda)" } },
+            h("div", { style: { flex: 1, minWidth: 0 } },
+              h("div", { style: { fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, (i + 1) + ". " + (m.titulo || "Música")),
+              h("div", { className: "sub" }, fmtDur(m.duracao))),
+            h("button", { type: "button", className: "btn sec", style: { width: 40, padding: 8 }, onClick: function () { moverMusica(i, -1); } }, "▲"),
+            h("button", { type: "button", className: "btn sec", style: { width: 40, padding: 8 }, onClick: function () { moverMusica(i, 1); } }, "▼"),
+            h("button", { type: "button", className: "btn sec", style: { width: 40, padding: 8 }, onClick: function () { removerMusica(i); } }, "🗑"));
+        }),
+        h("button", { className: "btn mt", disabled: salvando, onClick: salvar }, salvando ? "Salvando…" : "💾 Salvar tudo")
       ),
       h("div", { className: "titulo" }, "Fila de aprovação (" + fila.length + ")"),
       fila.length === 0 ? h("div", { className: "vazio" }, "Nenhuma publicação esperando.") : null,
@@ -572,7 +678,11 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
     var s5 = useState(""), cfgErro = s5[0], setCfgErro = s5[1];
     var s6 = useState(false), tocando = s6[0], setTocando = s6[1];
     var s7 = useState(false), carregando = s7[0], setCarregando = s7[1];
+    var s8 = useState(""), musicaAtual = s8[0], setMusicaAtual = s8[1];
+    var s9 = useState(false), cfgPronto = s9[0], setCfgPronto = s9[1];
     var audioRef = useRef(null);
+    var cfgRef = useRef(cfg); cfgRef.current = cfg;
+    var modoRef = useRef(""), idxRef = useRef(0), errosRef = useRef(0);
     var admin = !!(user && isAdminEmail(user.email));
 
     useEffect(function () {
@@ -580,24 +690,65 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
     }, []);
     useEffect(function () {
       return db.collection("config").doc("radio").onSnapshot(function (s) {
-        setCfg(s.exists ? (s.data() || {}) : {}); setCfgErro("");
+        setCfg(s.exists ? (s.data() || {}) : {}); setCfgErro(""); setCfgPronto(true);
       }, function (e) { setCfgErro(msgErro(e)); });
     }, []);
     useEffect(function () {
       if ("mediaSession" in navigator && window.MediaMetadata) {
         try {
-          navigator.mediaSession.metadata = new MediaMetadata({ title: cfg.programa || "Rádio Artmania", artist: cfg.locutor || "Ao vivo", album: "Artmania" });
+          navigator.mediaSession.metadata = new MediaMetadata({ title: musicaAtual || cfg.programa || "Rádio Artmania", artist: musicaAtual ? "Rádio Artmania" : (cfg.locutor || "Ao vivo"), album: "Artmania", artwork: [{ src: "icon-512-2.png", sizes: "512x512", type: "image/png" }] });
           navigator.mediaSession.setActionHandler("play", function () { tocar(); });
           navigator.mediaSession.setActionHandler("pause", function () { parar(); });
         } catch (e) {}
       }
-    }, [cfg.programa, cfg.locutor, cfg.streamUrl]);
+    }, [cfg.programa, cfg.locutor, cfg.streamUrl, musicaAtual]);
 
+    function tocarPlaylist(forcarIdx) {
+      var a = audioRef.current; if (!a) return false;
+      var c = cfgRef.current, l = listaValida(c);
+      if (!l.length) return false;
+      var pos = (typeof forcarIdx === "number") ? { i: forcarIdx % l.length, offset: 0 } : posicaoAtual(l, c.playlistInicio);
+      if (!pos) return false;
+      var m = l[pos.i];
+      modoRef.current = "playlist"; idxRef.current = pos.i;
+      setMusicaAtual(m.titulo || "Música");
+      setCarregando(true);
+      var off = pos.offset;
+      a.src = m.url;
+      if (off > 1) {
+        a.addEventListener("loadedmetadata", function () {
+          try { if (off < (a.duration || Number(m.duracao)) - 2) a.currentTime = off; } catch (e) {}
+        }, { once: true });
+      }
+      var pr = a.play();
+      if (pr && pr.then) pr.then(function () { setTocando(true); setCarregando(false); })
+        .catch(function (e) { if (e && e.name === "AbortError") return; setCarregando(false); setTocando(false); if (e && e.name === "NotAllowedError") return; });
+      return true;
+    }
+    function proxima() {
+      if (modoRef.current !== "playlist") return;
+      errosRef.current = 0;
+      setTimeout(function () { if (modoRef.current === "playlist") tocarPlaylist(); }, 250);
+    }
+    function pularComErro() {
+      if (modoRef.current !== "playlist") return false;
+      var n = listaValida(cfgRef.current).length;
+      errosRef.current++;
+      if (errosRef.current > Math.min(n, 5)) { modoRef.current = ""; return false; }
+      setTimeout(function () { if (modoRef.current === "playlist") tocarPlaylist(idxRef.current + 1); }, 800);
+      return true;
+    }
     function tocar() {
       var a = audioRef.current;
-      var url = String(cfg.streamUrl || "").trim();
+      var c = cfgRef.current;
+      var url = String(c.streamUrl || "").trim();
       if (!a) return;
-      if (!url) { alert("A rádio ainda não foi configurada."); return; }
+      errosRef.current = 0;
+      if (!url) {
+        if (!tocarPlaylist()) alert("A rádio ainda não foi configurada.");
+        return;
+      }
+      modoRef.current = "stream"; setMusicaAtual("");
       a.src = url;
       setCarregando(true);
       var pr = a.play();
@@ -606,16 +757,17 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
     }
     function parar() {
       var a = audioRef.current; if (!a) return;
+      modoRef.current = "";
       a.pause(); a.removeAttribute("src"); a.load();
-      setTocando(false); setCarregando(false);
+      setTocando(false); setCarregando(false); setMusicaAtual("");
     }
     function toggle() { if (tocando || carregando) parar(); else tocar(); }
 
     var tela;
-    if (aba === "radio") tela = h(Radio, { cfg: cfg, tocando: tocando, carregando: carregando, toggle: toggle, parar: parar });
+    if (aba === "radio") tela = h(Radio, { cfg: cfg, tocando: tocando, carregando: carregando, toggle: toggle, parar: parar, musicaAtual: musicaAtual });
     else if (aba === "mural") tela = h(Mural, { user: user, admin: admin });
     else if (aba === "enviar") tela = h(Enviar, { user: user, admin: admin, authPronto: authPronto });
-    else tela = h(Admin, { user: user, admin: admin, cfg: cfg });
+    else tela = h(Admin, { user: user, admin: admin, cfg: cfg, cfgPronto: cfgPronto });
 
     var abas = [["radio", "📻", "Rádio"], ["mural", "📸", "Mural"], ["enviar", "➕", "Enviar"]];
     if (admin) abas.push(["admin", "⚙️", "Admin"]);
@@ -625,14 +777,19 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
         ref: audioRef, preload: "none",
         onPlaying: function () { setCarregando(false); setTocando(true); },
         onWaiting: function () { setCarregando(true); },
-        onError: function () { if (audioRef.current && audioRef.current.getAttribute("src")) { setTocando(false); setCarregando(false); } }
+        onEnded: proxima,
+        onError: function () {
+          if (!(audioRef.current && audioRef.current.getAttribute("src"))) return;
+          if (pularComErro()) return;
+          setTocando(false); setCarregando(false);
+        }
       }),
       h(Header, { cfg: cfg }),
       cfgErro ? h("div", { className: "aviso erro" }, cfgErro) : null,
       h("main", { className: "conteudo" }, tela),
       aba !== "radio" && (tocando || carregando) ? h("div", { className: "mini" }, h("div", { className: "in" },
         h("button", { onClick: toggle, "aria-label": "Pausar" }, PAUSE),
-        h("div", { className: "t" }, h("b", null, cfg.programa || "Rádio Artmania"), h("span", { className: "sub" }, carregando ? "Conectando…" : "Tocando agora"))
+        h("div", { className: "t" }, h("b", null, cfg.programa || "Rádio Artmania"), h("span", { className: "sub" }, carregando ? "Conectando…" : (musicaAtual ? "♪ " + musicaAtual : "Tocando agora")))
       )) : null,
       h("nav", null, h("div", { className: "in" }, abas.map(function (a) {
         return h("button", { key: a[0], className: aba === a[0] ? "on" : "", onClick: function () { setAba(a[0]); window.scrollTo(0, 0); } },
