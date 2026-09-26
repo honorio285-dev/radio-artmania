@@ -1,7 +1,7 @@
 // Service worker da Rádio Artmania
 // Guarda só os arquivos do próprio site. O áudio da rádio, o Firebase e o YouTube passam direto.
 var CACHE = "artmania-v1";
-var ARQUIVOS = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png"];
+var ARQUIVOS = ["./", "./index.html", "./manifest.json", "./icon-192-3.png", "./icon-512-2.png", "./icon-maskable-512.png"];
 
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(ARQUIVOS); }).then(function () { return self.skipWaiting(); }));
