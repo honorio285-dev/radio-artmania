@@ -572,67 +572,34 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
         h("input", { type: "checkbox", checked: !!form[nome], onChange: function (e) { var n = Object.assign({}, form); n[nome] = e.target.checked; setForm(n); } }),
         rotulo);
     }
-    function salvar() {
+    function salvar(listaNova, aviso) {
+      var L = Array.isArray(listaNova) ? listaNova : lista;
       setSalvando(true); setMsg({ t: "", tipo: "" });
       var dados = {
         streamUrl: String(form.streamUrl || "").trim(), programa: String(form.programa || "").trim(),
         locutor: String(form.locutor || "").trim(), noAr: !!form.noAr, aoVivoVideo: !!form.aoVivoVideo,
         youtubeCanal: String(form.youtubeCanal || "").trim(), youtubeVideo: String(form.youtubeVideo || "").trim(),
-        playlist: lista.map(function (m) { return { url: String(m.url || ""), yt: String(m.yt || ""), titulo: String(m.titulo || "Música").slice(0, 120), duracao: Math.round(Number(m.duracao) || 0) }; }),
+        playlist: L.map(function (m) { return { url: String(m.url || ""), yt: String(m.yt || ""), titulo: String(m.titulo || "Música").slice(0, 120), duracao: Math.round(Number(m.duracao) || 0) }; }),
         playlistInicio: Number(cfg.playlistInicio) || Date.now(),
         atualizadoEm: agora()
       };
       Promise.all([
         db.collection("config").doc("radio").set(dados, { merge: true }),
         db.collection("config").doc("privado").set({ linkConvidado: String(convite || "").trim() }, { merge: true })
-      ]).then(function () { setMsg({ t: "Salvo! Já aparece para todos os ouvintes.", tipo: "ok" }); })
-        .catch(function (e) { setMsg({ t: msgErro(e), tipo: "erro" }); })
+      ]).then(function () { setMsg({ t: "Salvo! Já aparece para todos os ouvintes.", tipo: "ok" }); if (aviso) setMsgM({ t: aviso, tipo: "ok" }); })
+        .catch(function (e) { setMsg({ t: msgErro(e), tipo: "erro" }); if (aviso) setMsgM({ t: "Não salvou: " + msgErro(e), tipo: "erro" }); })
         .then(function () { setSalvando(false); });
     }
+    function incluirESalvar(item) {
+      var nova = lista.concat([item]);
+      setLista(nova);
+      setNovoUrl(""); setNovoTitulo("");
+      salvar(nova, "✔ Adicionada e salva: " + item.titulo + (item.duracao ? " (" + fmtDur(item.duracao) + ")" : "") + ". Já pode tocar na aba Rádio!");
+    }
     function adicionarYouTube(yid) {
-      setTestando(true); setMsgM({ t: "Lendo o vídeo do YouTube…", tipo: "" });
-      setPrevia(true);
-      carregarYT().then(function (YT) {
-        var caixa = previaRef.current;
-        if (!caixa) throw new Error("Tente de novo.");
-        caixa.innerHTML = "";
-        var alvo = document.createElement("div");
-        caixa.appendChild(alvo);
-        var fim = false, pl = null, iv = null, tm = null;
-        var acabar = function (ok, dur, erro) {
-          if (fim) return; fim = true; clearTimeout(tm); clearInterval(iv);
-          var tituloYT = "";
-          try { tituloYT = (pl && pl.getVideoData && pl.getVideoData().title) || ""; } catch (e) {}
-          try { pl && pl.destroy(); } catch (e) {}
-          try { caixa.innerHTML = ""; } catch (e) {}
-          setPrevia(false);
-          setTestando(false);
-          if (!ok) { setMsgM({ t: erro || "Não consegui ler esse vídeo.", tipo: "erro" }); return; }
-          var tit = String(novoTitulo || "").trim() || tituloYT || "Música";
-          setLista(function (atual) { return atual.concat([{ yt: yid, url: "", titulo: tit, duracao: Math.round(dur) }]); });
-          setNovoUrl(""); setNovoTitulo("");
-          setMsgM({ t: "Adicionada: " + tit + " (" + fmtDur(dur) + "). Não esqueça de tocar em Salvar tudo.", tipo: "ok" });
-        };
-        tm = setTimeout(function () { acabar(false, 0, "O YouTube demorou para responder. Toque no play do vídeo na pré-visualização e tente de novo."); }, 30000);
-        iv = setInterval(function () {
-          try { var d = pl && pl.getDuration && pl.getDuration(); if (d > 0) acabar(true, d); } catch (e) {}
-        }, 500);
-        pl = new YT.Player(alvo, {
-          videoId: yid, width: "100%", height: "100%",
-          playerVars: { mute: 1, autoplay: 1, controls: 1, playsinline: 1 },
-          events: {
-            onReady: function (e) {
-              try { e.target.mute(); e.target.playVideo(); } catch (x) {}
-              try { var d0 = e.target.getDuration(); if (d0 > 0) acabar(true, d0); } catch (x) {}
-            },
-            onStateChange: function (e) { try { var d1 = e.target.getDuration(); if (d1 > 0) acabar(true, d1); } catch (x) {} },
-            onError: function (e) {
-              var c = e && e.data;
-              acabar(false, 0, (c === 101 || c === 150) ? "Esse vídeo foi bloqueado pelo dono para tocar fora do YouTube. Escolha outro vídeo da mesma música." : "Vídeo não encontrado ou privado.");
-            }
-          }
-        });
-      }).catch(function (err) { setPrevia(false); setTestando(false); setMsgM({ t: err.message, tipo: "erro" }); });
+      var tit = String(novoTitulo || "").trim() || "Música do YouTube";
+      // duração provisória; o app corrige sozinho na primeira vez que tocar
+      incluirESalvar({ yt: yid, url: "", titulo: tit, duracao: 240 });
     }
     function adicionarMusica() {
       var bruto = ajustarLink(novoUrl);
@@ -651,9 +618,7 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
         setTestando(false);
         if (!ok) { setMsgM({ t: "Esse link não tocou. Use um link direto de arquivo de áudio (.mp3), por exemplo um MP3 enviado para o GitHub.", tipo: "erro" }); return; }
         var tit = String(novoTitulo || "").trim() || tituloDoLink(abs);
-        setLista(function (atual) { return atual.concat([{ url: abs, yt: "", titulo: tit, duracao: Math.round(dur) }]); });
-        setNovoUrl(""); setNovoTitulo("");
-        setMsgM({ t: "Adicionada: " + tit + " (" + fmtDur(dur) + "). Não esqueça de tocar em Salvar tudo.", tipo: "ok" });
+        incluirESalvar({ url: abs, yt: "", titulo: tit, duracao: Math.round(dur) });
       };
       var tm = setTimeout(function () { acabar(false); }, 25000);
       au.preload = "metadata";
@@ -667,11 +632,11 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
     }
     function moverMusica(i, dir) {
       var j = i + dir; if (j < 0 || j >= lista.length) return;
-      var n = lista.slice(); var t = n[i]; n[i] = n[j]; n[j] = t; setLista(n);
+      var n = lista.slice(); var t = n[i]; n[i] = n[j]; n[j] = t; setLista(n); salvar(n, "Ordem salva.");
     }
     function removerMusica(i) {
       if (!confirm("Tirar \"" + (lista[i].titulo || "Música") + "\" da rádio?")) return;
-      var n = lista.slice(); n.splice(i, 1); setLista(n);
+      var n = lista.slice(); n.splice(i, 1); setLista(n); salvar(n, "Música removida.");
     }
     function convidarWhats() {
       var l = String(convite || "").trim();
@@ -705,11 +670,11 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
         h("label", null, "Link de convidado do StreamYard (só você vê)"),
         h("input", { type: "url", value: convite, placeholder: "https://streamyard.com/…", onChange: function (e) { setConvite(e.target.value); } }),
         h("button", { className: "btn verde mt", type: "button", onClick: convidarWhats }, "Convidar pelo WhatsApp"),
-        h("button", { className: "btn mt", disabled: salvando, onClick: salvar }, salvando ? "Salvando…" : "💾 Salvar tudo"),
+        h("button", { className: "btn mt", disabled: salvando, onClick: function () { salvar(); } }, salvando ? "Salvando…" : "💾 Salvar tudo"),
         msg.t ? h("div", { className: "msg " + msg.tipo }, msg.t) : null
       ),
       h("div", { className: "card" },
-        h("div", { className: "titulo" }, "🎵 Músicas da rádio"),
+        h("div", { className: "titulo" }, "🎵 Músicas da rádio ", h("span", { className: "tag" }, "v4")),
         h("div", { className: "sub" }, "Cole links do YouTube ou de arquivos MP3. Todos os ouvintes escutam a mesma música ao mesmo tempo, em sequência, sem parar. Para usar este modo, deixe o \"Link do stream de áudio\" em branco."),
         h("label", null, "Link da música (YouTube ou .mp3)"),
         h("input", { type: "url", value: novoUrl, placeholder: "https://youtu.be/…  ou  https://…/musica.mp3", onChange: function (e) { setNovoUrl(e.target.value); } }),
@@ -730,7 +695,7 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
             h("button", { type: "button", className: "btn sec", style: { width: 40, padding: 8 }, onClick: function () { moverMusica(i, 1); } }, "▼"),
             h("button", { type: "button", className: "btn sec", style: { width: 40, padding: 8 }, onClick: function () { removerMusica(i); } }, "🗑"));
         }),
-        h("button", { className: "btn mt", disabled: salvando, onClick: salvar }, salvando ? "Salvando…" : "💾 Salvar tudo")
+        h("button", { className: "btn mt", disabled: salvando, onClick: function () { salvar(); } }, salvando ? "Salvando…" : "💾 Salvar tudo")
       ),
       h("div", { className: "titulo" }, "Fila de aprovação (" + fila.length + ")"),
       fila.length === 0 ? h("div", { className: "vazio" }, "Nenhuma publicação esperando.") : null,
@@ -755,6 +720,7 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
     var s9 = useState(false), cfgPronto = s9[0], setCfgPronto = s9[1];
     var audioRef = useRef(null);
     var cfgRef = useRef(cfg); cfgRef.current = cfg;
+    var adminRef = useRef(false);
     var modoRef = useRef(""), idxRef = useRef(0), errosRef = useRef(0);
     var ytRef = useRef(null), ytBoxRef = useRef(null);
     var s10 = useState(false), ytAtivo = s10[0], setYtAtivo = s10[1];
@@ -764,6 +730,7 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
     }
     function pararYT() { destruirYT(); setYtAtivo(false); }
     var admin = !!(user && isAdminEmail(user.email));
+    adminRef.current = admin;
 
     useEffect(function () {
       return auth.onAuthStateChanged(function (u) { setUser(u || null); setAuthPronto(true); });
@@ -808,7 +775,28 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
             events: {
               onReady: function (e) { try { e.target.playVideo(); } catch (x) {} },
               onStateChange: function (e) {
-                if (e.data === 1) { setTocando(true); setCarregando(false); errosRef.current = 0; }
+                if (e.data === 1) {
+                  setTocando(true); setCarregando(false); errosRef.current = 0;
+                  try {
+                    var dReal = Math.round(e.target.getDuration() || 0);
+                    var tReal = (e.target.getVideoData && e.target.getVideoData().title) || "";
+                    var precisaDur = dReal > 0 && Math.abs(dReal - Number(m.duracao)) > 3;
+                    var precisaTit = tReal && m.titulo === "Música do YouTube";
+                    if (tReal && m.titulo === "Música do YouTube") setMusicaAtual(tReal);
+                    if (adminRef.current && (precisaDur || precisaTit)) {
+                      var pl2 = (cfgRef.current.playlist || []).map(function (x) {
+                        if (x && x.yt === m.yt) {
+                          var y = Object.assign({}, x);
+                          if (precisaDur) y.duracao = dReal;
+                          if (precisaTit) y.titulo = tReal;
+                          return y;
+                        }
+                        return x;
+                      });
+                      db.collection("config").doc("radio").set({ playlist: pl2 }, { merge: true }).catch(function () {});
+                    }
+                  } catch (x) {}
+                }
                 else if (e.data === 3) setCarregando(true);
                 else if (e.data === 0) proxima();
               },
