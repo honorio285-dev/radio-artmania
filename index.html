@@ -535,6 +535,8 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
     var s8 = useState(""), novoTitulo = s8[0], setNovoTitulo = s8[1];
     var s9 = useState(false), testando = s9[0], setTestando = s9[1];
     var s10 = useState({ t: "", tipo: "" }), msgM = s10[0], setMsgM = s10[1];
+    var s11 = useState(false), previa = s11[0], setPrevia = s11[1];
+    var previaRef = useRef(null);
 
     useEffect(function () {
       if (!p.cfgPronto) return;
@@ -589,18 +591,21 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
     }
     function adicionarYouTube(yid) {
       setTestando(true); setMsgM({ t: "Lendo o vídeo do YouTube…", tipo: "" });
+      setPrevia(true);
       carregarYT().then(function (YT) {
-        var caixa = document.createElement("div");
-        caixa.style.cssText = "position:fixed;left:-9999px;top:0;width:200px;height:120px;";
+        var caixa = previaRef.current;
+        if (!caixa) throw new Error("Tente de novo.");
+        caixa.innerHTML = "";
         var alvo = document.createElement("div");
-        caixa.appendChild(alvo); document.body.appendChild(caixa);
+        caixa.appendChild(alvo);
         var fim = false, pl = null, iv = null, tm = null;
         var acabar = function (ok, dur, erro) {
           if (fim) return; fim = true; clearTimeout(tm); clearInterval(iv);
           var tituloYT = "";
           try { tituloYT = (pl && pl.getVideoData && pl.getVideoData().title) || ""; } catch (e) {}
           try { pl && pl.destroy(); } catch (e) {}
-          try { caixa.remove(); } catch (e) {}
+          try { caixa.innerHTML = ""; } catch (e) {}
+          setPrevia(false);
           setTestando(false);
           if (!ok) { setMsgM({ t: erro || "Não consegui ler esse vídeo.", tipo: "erro" }); return; }
           var tit = String(novoTitulo || "").trim() || tituloYT || "Música";
@@ -608,22 +613,26 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
           setNovoUrl(""); setNovoTitulo("");
           setMsgM({ t: "Adicionada: " + tit + " (" + fmtDur(dur) + "). Não esqueça de tocar em Salvar tudo.", tipo: "ok" });
         };
-        tm = setTimeout(function () { acabar(false, 0, "O YouTube demorou para responder. Tente de novo."); }, 25000);
+        tm = setTimeout(function () { acabar(false, 0, "O YouTube demorou para responder. Toque no play do vídeo na pré-visualização e tente de novo."); }, 30000);
         iv = setInterval(function () {
           try { var d = pl && pl.getDuration && pl.getDuration(); if (d > 0) acabar(true, d); } catch (e) {}
         }, 500);
         pl = new YT.Player(alvo, {
-          videoId: yid, width: 200, height: 120,
-          playerVars: { mute: 1, autoplay: 1, controls: 0, playsinline: 1 },
+          videoId: yid, width: "100%", height: "100%",
+          playerVars: { mute: 1, autoplay: 1, controls: 1, playsinline: 1 },
           events: {
-            onReady: function (e) { try { e.target.mute(); e.target.playVideo(); } catch (x) {} },
+            onReady: function (e) {
+              try { e.target.mute(); e.target.playVideo(); } catch (x) {}
+              try { var d0 = e.target.getDuration(); if (d0 > 0) acabar(true, d0); } catch (x) {}
+            },
+            onStateChange: function (e) { try { var d1 = e.target.getDuration(); if (d1 > 0) acabar(true, d1); } catch (x) {} },
             onError: function (e) {
               var c = e && e.data;
               acabar(false, 0, (c === 101 || c === 150) ? "Esse vídeo foi bloqueado pelo dono para tocar fora do YouTube. Escolha outro vídeo da mesma música." : "Vídeo não encontrado ou privado.");
             }
           }
         });
-      }).catch(function (err) { setTestando(false); setMsgM({ t: err.message, tipo: "erro" }); });
+      }).catch(function (err) { setPrevia(false); setTestando(false); setMsgM({ t: err.message, tipo: "erro" }); });
     }
     function adicionarMusica() {
       var bruto = ajustarLink(novoUrl);
@@ -707,6 +716,9 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
         h("label", null, "Nome da música (opcional)"),
         h("input", { type: "text", value: novoTitulo, maxLength: 120, placeholder: "Ex.: Artista - Música", onChange: function (e) { setNovoTitulo(e.target.value); } }),
         h("button", { className: "btn ciano mt", type: "button", disabled: testando, onClick: adicionarMusica }, testando ? "Testando…" : "➕ Adicionar música"),
+        h("div", { className: previa ? "" : "yt-off", style: { marginTop: 12 } },
+          h("div", { className: "sub", style: { marginBottom: 6 } }, "Pré-visualização (se o vídeo não começar sozinho, toque no play dele):"),
+          h("div", { className: "ytbox", ref: previaRef })),
         msgM.t ? h("div", { className: "msg " + msgM.tipo }, msgM.t) : null,
         lista.length ? h("div", { className: "sub", style: { marginTop: 14 } }, lista.length + " música(s) · " + fmtDur(lista.reduce(function (t, m) { return t + Number(m.duracao || 0); }, 0)) + " no total") : null,
         lista.map(function (m, i) {
