@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="pt-BR" translate="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="google" content="notranslate">
+<meta name="theme-color" content="#0d0a14">
+<title>Rádio Artmania</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d0a14; --card:#181222; --card2:#221a30; --txt:#f3eefc; --sub:#a99bbd;
+    --rosa:#ff2e88; --ciano:#22d3ee; --amarelo:#ffd23f; --verde:#2ee59d; --borda:#2e2440;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--txt);font-family:Inter,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+  body{min-height:100vh}
+  button{font-family:inherit;cursor:pointer;border:0}
+  input,textarea{font-family:inherit;font-size:16px}
+  .app{max-width:640px;margin:0 auto;padding-bottom:150px}
+  header{position:sticky;top:0;z-index:5;background:rgba(13,10,20,.92);backdrop-filter:blur(8px);
+    display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--borda)}
+  .logo{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:2px;line-height:1;
+    background:linear-gradient(90deg,var(--rosa),var(--amarelo),var(--ciano));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .logo small{display:block;font-family:Inter;font-size:10px;letter-spacing:4px;color:var(--sub);-webkit-text-fill-color:var(--sub)}
+  .noar{background:var(--rosa);color:#fff;font-weight:800;font-size:12px;padding:6px 10px;border-radius:999px;letter-spacing:1px;animation:pisca 1.4s infinite}
+  .offar{background:var(--card2);color:var(--sub);font-weight:600;font-size:12px;padding:6px 10px;border-radius:999px}
+  @keyframes pisca{50%{opacity:.55}}
+  .conteudo{padding:16px}
+  .card{background:var(--card);border:1px solid var(--borda);border-radius:18px;padding:18px;margin-bottom:16px}
+  .titulo{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;margin-bottom:10px}
+  .sub{color:var(--sub);font-size:14px}
+  .player{text-align:center;padding:28px 18px;background:radial-gradient(circle at 50% 0%,#3a1440 0%,var(--card) 70%)}
+  .bigplay{width:84px;height:84px;border-radius:50%;margin:14px auto 16px;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,var(--rosa),#b01cff);box-shadow:0 0 40px rgba(255,46,136,.45)}
+  .bigplay.on{animation:pulso 1.6s infinite}
+  @keyframes pulso{50%{box-shadow:0 0 70px rgba(255,46,136,.8)}}
+  .bigplay svg{width:38px;height:38px;fill:#fff}
+  .marca{display:flex;align-items:center;gap:10px}
+  .logo-img{width:46px;height:46px;display:block;flex:none}
+  .logo-grande{width:150px;height:150px;display:block;margin:4px auto 12px;filter:drop-shadow(0 0 18px rgba(215,38,30,.45))}
+  .logo-grande.gira{animation:gira 12s linear infinite}
+  @keyframes gira{to{transform:rotate(360deg)}}
+  .programa{font-size:22px;font-weight:800}
+  .ondas{display:flex;gap:4px;justify-content:center;height:24px;align-items:flex-end;margin-top:12px}
+  .ondas i{width:5px;background:var(--ciano);border-radius:3px;animation:onda 1s infinite ease-in-out}
+  .ondas i:nth-child(2){animation-delay:.15s}.ondas i:nth-child(3){animation-delay:.3s}.ondas i:nth-child(4){animation-delay:.45s}.ondas i:nth-child(5){animation-delay:.6s}
+  @keyframes onda{0%,100%{height:5px}50%{height:24px}}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 18px;border-radius:12px;font-weight:800;font-size:15px;
+    background:var(--rosa);color:#fff;width:100%}
+  .btn.sec{background:var(--card2);color:var(--txt);border:1px solid var(--borda)}
+  .btn.ciano{background:var(--ciano);color:#062029}
+  .btn.verde{background:var(--verde);color:#052a1b}
+  .btn:disabled{opacity:.5}
+  .linha{display:flex;gap:10px}
+  .linha>*{flex:1}
+  .mt{margin-top:12px}
+  label{display:block;font-size:13px;color:var(--sub);margin:12px 0 6px;font-weight:600}
+  input[type=text],input[type=email],input[type=password],input[type=url],textarea{width:100%;background:var(--bg);color:var(--txt);
+    border:1px solid var(--borda);border-radius:10px;padding:12px}
+  textarea{min-height:90px;resize:vertical}
+  .chk{display:flex;align-items:center;gap:10px;margin-top:14px;font-weight:600}
+  .chk input{width:22px;height:22px;accent-color:var(--rosa)}
+  .video{position:relative;width:100%;padding-top:56.25%;border-radius:12px;overflow:hidden;background:#000;margin-top:12px}
+  .video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .post .autor{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .post .nome{font-weight:800}
+  .post img{width:100%;border-radius:12px;margin-top:10px;display:block}
+  .post p{white-space:pre-wrap;line-height:1.45}
+  .acoes{display:flex;gap:10px;margin-top:12px}
+  .acoes button{background:var(--card2);color:var(--txt);padding:9px 14px;border-radius:999px;font-weight:700;font-size:14px;border:1px solid var(--borda)}
+  .acoes button.curtido{color:var(--rosa);border-color:var(--rosa)}
+  .aviso{padding:12px 14px;border-radius:12px;margin:12px 16px 0;font-size:14px;line-height:1.4}
+  .aviso.erro{background:#3a0f1f;border:1px solid var(--rosa)}
+  .aviso.ok{background:#0f3a28;border:1px solid var(--verde)}
+  .msg{margin-top:10px;font-size:14px}
+  .msg.erro{color:#ff7aa8}.msg.ok{color:var(--verde)}
+  .preview{position:relative;margin-top:10px}
+  .preview img{width:100%;border-radius:12px}
+  .preview button{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.7);color:#fff;border-radius:999px;padding:6px 12px;font-weight:700}
+  .abas2{display:flex;gap:8px;margin-bottom:6px}
+  .abas2 button{flex:1;padding:10px;border-radius:10px;background:var(--card2);color:var(--sub);font-weight:700}
+  .abas2 button.on{background:var(--rosa);color:#fff}
+  .tag{font-size:11px;font-weight:800;padding:4px 8px;border-radius:999px;background:var(--amarelo);color:#2a2000}
+  .vazio{text-align:center;color:var(--sub);padding:30px 10px}
+  .mini{position:fixed;left:0;right:0;bottom:64px;z-index:6;display:flex;justify-content:center}
+  .mini .in{max-width:640px;width:100%;margin:0 10px;background:var(--card2);border:1px solid var(--borda);border-radius:14px;
+    display:flex;align-items:center;gap:12px;padding:10px 12px}
+  .mini button{width:42px;height:42px;border-radius:50%;background:var(--rosa);display:flex;align-items:center;justify-content:center;flex:none}
+  .mini svg{width:20px;height:20px;fill:#fff}
+  .mini .t{flex:1;min-width:0}
+  .mini .t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}
+  nav{position:fixed;left:0;right:0;bottom:0;z-index:7;background:#120d1b;border-top:1px solid var(--borda);
+    display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom)}
+  nav .in{max-width:640px;width:100%;display:flex}
+  nav button{flex:1;background:none;color:var(--sub);padding:9px 0 10px;font-size:11px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:3px}
+  nav button span{font-size:20px}
+  nav button.on{color:var(--rosa)}
+  .carregando{text-align:center;padding:40px;color:var(--sub)}
+  .setup{padding:24px 16px;line-height:1.5}
+  .setup code{background:var(--card2);padding:2px 6px;border-radius:6px}
+</style>
+</head>
+<body class="notranslate">
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+/* =====================================================
+   CONFIGURAÇÃO — ALTERE SOMENTE ESTA PARTE
+   ===================================================== */
+var firebaseConfig = {
+  apiKey: "COLE_AQUI",
+  authDomain: "COLE_AQUI",
+  projectId: "COLE_AQUI",
+  storageBucket: "COLE_AQUI",
+  messagingSenderId: "COLE_AQUI",
+  appId: "COLE_AQUI"
+};
+// E-mail(s) de administrador — o MESMO das Regras do Firestore, tudo minúsculo
+var ADMIN_EMAILS = ["honorio285@gmail.com"];
+/* ===================== FIM DA CONFIGURAÇÃO ===================== */
+</script>
+
+<script>
+(function () {
+  var h = React.createElement;
+  var useState = React.useState, useEffect = React.useEffect, useRef = React.useRef;
+
+  var configOk = !!(firebaseConfig && firebaseConfig.apiKey && String(firebaseConfig.apiKey).indexOf("COLE_AQUI") === -1);
+  var auth = null, db = null;
+  if (configOk) {
+    try {
+      firebase.initializeApp(firebaseConfig);
+      auth = firebase.auth();
+      db = firebase.firestore();
+    } catch (e) { configOk = false; console.error(e); }
+  }
+  function agora() { return firebase.firestore.FieldValue.serverTimestamp(); }
+
+  /* ---------- utilidades ---------- */
+  function isAdminEmail(email) {
+    if (!email) return false;
+    var e = String(email).trim().toLowerCase();
+    return (ADMIN_EMAILS || []).some(function (a) { return String(a || "").trim().toLowerCase() === e; });
+  }
+  function ytId(url) {
+    if (!url) return null;
+    var s = String(url).trim();
+    var m = s.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/);
+    if (m) return m[1];
+    if (/^[\w-]{11}$/.test(s)) return s;
+    return null;
+  }
+  function tempoAtras(ts) {
+    if (!ts || typeof ts.toDate !== "function") return "";
+    var d = (Date.now() - ts.toDate().getTime()) / 1000;
+    if (d < 60) return "agora";
+    if (d < 3600) return Math.floor(d / 60) + " min";
+    if (d < 86400) return Math.floor(d / 3600) + " h";
+    return Math.floor(d / 86400) + " d";
+  }
+  function msgErro(e) {
+    var c = (e && e.code) || "";
+    if (c === "permission-denied" || c === "firestore/permission-denied")
+      return "Sem permissão no banco de dados. Confira as Regras do Firestore e se o seu e-mail de admin está igual nos dois lugares.";
+    if (c === "unavailable") return "Sem conexão com o servidor. Verifique a internet.";
+    var map = {
+      "auth/invalid-credential": "E-mail ou senha incorretos.",
+      "auth/wrong-password": "E-mail ou senha incorretos.",
+      "auth/user-not-found": "E-mail ou senha incorretos.",
+      "auth/invalid-email": "E-mail inválido.",
+      "auth/email-already-in-use": "Este e-mail já tem conta. Use \"Entrar\".",
+      "auth/weak-password": "Senha fraca: use pelo menos 6 caracteres.",
+      "auth/too-many-requests": "Muitas tentativas. Aguarde alguns minutos.",
+      "auth/operation-not-allowed": "Ative o login por E-mail/Senha no Firebase (Authentication > Método de login).",
+      "auth/network-request-failed": "Sem internet no momento."
+    };
+    if (map[c]) return map[c];
+    return (e && e.message) ? e.message : String(e);
+  }
+  function comprimirImagem(file) {
+    return new Promise(function (res, rej) {
+      var r = new FileReader();
+      r.onerror = function () { rej(new Error("Não foi possível ler a foto.")); };
+      r.onload = function () {
+        var img = new Image();
+        img.onerror = function () { rej(new Error("Formato de imagem não suportado.")); };
+        img.onload = function () {
+          var max = 1080, q = 0.75;
+          for (var i = 0; i < 7; i++) {
+            var esc = Math.min(1, max / Math.max(img.width, img.height));
+            var c = document.createElement("canvas");
+            c.width = Math.round(img.width * esc); c.height = Math.round(img.height * esc);
+            c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+            var out = c.toDataURL("image/jpeg", q);
+            if (out.length < 700000) return res(out);
+            max = Math.round(max * 0.8); q = Math.max(0.5, q - 0.05);
+          }
+          rej(new Error("Foto muito grande, tente outra."));
+        };
+        img.src = r.result;
+      };
+      r.readAsDataURL(file);
+    });
+  }
+  function docs(snap) {
+    return snap.docs.map(function (d) {
+      var x = d.data({ serverTimestamps: "estimate" }) || {};
+      x.id = d.id; return x;
+    });
+  }
+  var LOGO = "data:image/svg+xml;charset=utf-8," + encodeURIComponent("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><defs><path id=\"t\" d=\"M24,100 A76,76 0 0 1 176,100\"/><path id=\"b\" d=\"M17,100 A83,83 0 0 0 183,100\"/></defs><circle cx=\"100\" cy=\"100\" r=\"98\" fill=\"#e6e6e6\"/><circle cx=\"100\" cy=\"100\" r=\"94\" fill=\"#111\"/><circle cx=\"100\" cy=\"100\" r=\"66\" fill=\"#d7261e\"/><text font-family=\"Arial Black,Arial,Helvetica,sans-serif\" font-weight=\"900\" font-size=\"15\" fill=\"#fff\" letter-spacing=\"0.5\"><textPath href=\"#t\" startOffset=\"50%\" text-anchor=\"middle\">PIPA \u2605 ARTE \u2605 MANIA</textPath></text><text font-family=\"Arial Black,Arial,Helvetica,sans-serif\" font-weight=\"900\" font-size=\"17\" fill=\"#fff\" letter-spacing=\"1\"><textPath href=\"#b\" startOffset=\"50%\" text-anchor=\"middle\">\u2605 25/04/2022 \u2605</textPath></text><g transform=\"rotate(-18 100 96)\"><path d=\"M100 132 C88 144,114 150,102 162\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.5\" stroke-linecap=\"round\"/><path d=\"M92 141 l8 3 -7 5z M104 150 l8 -2 -4 7z\" fill=\"#ffd23f\" stroke=\"#111\" stroke-width=\"1.2\"/><polygon points=\"100,46 100,90 70,90\" fill=\"#ffd23f\"/><polygon points=\"100,46 130,90 100,90\" fill=\"#22d3ee\"/><polygon points=\"100,90 130,90 100,132\" fill=\"#ff2e88\"/><polygon points=\"100,90 100,132 70,90\" fill=\"#fff\"/><polygon points=\"100,46 130,90 100,132 70,90\" fill=\"none\" stroke=\"#111\" stroke-width=\"3\" stroke-linejoin=\"round\"/><path d=\"M100 46 V132 M70 90 H130\" stroke=\"#111\" stroke-width=\"2\"/></g><g fill=\"none\" stroke=\"#fff\" stroke-width=\"3\" stroke-linecap=\"round\"><path d=\"M138 64 a14 14 0 0 1 8 16\"/><path d=\"M143 54 a26 26 0 0 1 14 30\"/></g></svg>");
+  var PLAY = h("svg", { viewBox: "0 0 24 24" }, h("path", { d: "M8 5v14l11-7z" }));
+  var PAUSE = h("svg", { viewBox: "0 0 24 24" }, h("path", { d: "M6 5h4v14H6zM14 5h4v14h-4z" }));
+
+  /* ---------- Cabeçalho ---------- */
+  function Header(p) {
+    return h("header", null,
+      h("div", { className: "marca" }, h("img", { src: LOGO, alt: "Artmania", className: "logo-img" }),
+        h("div", { className: "logo" }, "ARTMANIA", h("small", null, "RÁDIO ONLINE"))),
+      p.cfg.noAr ? h("div", { className: "noar" }, "● NO AR") : h("div", { className: "offar" }, "Programação")
+    );
+  }
+
+  /* ---------- Aba Rádio ---------- */
+  function Radio(p) {
+    var cfg = p.cfg;
+    var st = useState(false), verVideo = st[0], setVerVideo = st[1];
+    var canal = String(cfg.youtubeCanal || "").trim();
+    var vid = ytId(cfg.youtubeVideo);
+    var temVideo = !!(cfg.aoVivoVideo && (vid || canal));
+    var src = vid ? "https://www.youtube.com/embed/" + vid + "?autoplay=1&playsinline=1"
+                  : "https://www.youtube.com/embed/live_stream?channel=" + encodeURIComponent(canal) + "&autoplay=1&playsinline=1";
+
+    useEffect(function () { if (!temVideo) setVerVideo(false); }, [temVideo]);
+
+    function assistir() { p.parar(); setVerVideo(true); }
+    function compartilhar() {
+      var url = location.href.split("#")[0];
+      if (navigator.share) navigator.share({ title: "Rádio Artmania", text: "Ouça a Rádio Artmania!", url: url }).catch(function () {});
+      else window.open("https://wa.me/?text=" + encodeURIComponent("Ouça a Rádio Artmania! " + url), "_blank");
+    }
+
+    return h("div", null,
+      h("div", { className: "card player" },
+        h("img", { src: LOGO, alt: "Rádio Artmania", className: "logo-grande" + (p.tocando ? " gira" : "") }),
+        h("div", { className: "sub" }, cfg.noAr ? "AO VIVO AGORA" : "TOCANDO NA ARTMANIA"),
+        h("button", { className: "bigplay" + (p.tocando ? " on" : ""), onClick: p.toggle, "aria-label": "Tocar/Pausar" },
+          p.tocando || p.carregando ? PAUSE : PLAY),
+        h("div", { className: "programa" }, cfg.programa || "Rádio Artmania"),
+        h("div", { className: "sub", style: { marginTop: 4 } }, cfg.locutor ? "com " + cfg.locutor : "Arte, música e cultura 24h"),
+        p.carregando ? h("div", { className: "sub mt" }, "Conectando…")
+          : p.tocando ? h("div", { className: "ondas" }, h("i"), h("i"), h("i"), h("i"), h("i"))
+          : null,
+        !cfg.streamUrl ? h("div", { className: "msg erro" }, "A rádio ainda não foi configurada (aba Admin).") : null
+      ),
+      temVideo ? h("div", { className: "card" },
+        h("div", { className: "titulo" }, "🎥 Ao vivo em vídeo"),
+        !verVideo
+          ? h("div", null,
+              h("div", { className: "sub" }, "Estamos transmitindo com vídeo agora. Ao abrir o vídeo, a rádio pausa para o som não ficar dobrado."),
+              h("button", { className: "btn ciano mt", onClick: assistir }, "▶ Assistir ao vivo"))
+          : h("div", null,
+              h("div", { className: "video" }, h("iframe", { src: src, allow: "autoplay; encrypted-media; picture-in-picture", allowFullScreen: true })),
+              h("button", { className: "btn sec mt", onClick: function () { setVerVideo(false); } }, "Fechar vídeo"))
+      ) : null,
+      h("button", { className: "btn sec", onClick: compartilhar }, "📤 Compartilhar a rádio")
+    );
+  }
+
+  /* ---------- Cartão de publicação ---------- */
+  function Post(p) {
+    var x = p.post, user = p.user;
+    var curt = Array.isArray(x.curtidas) ? x.curtidas : [];
+    var ja = !!(user && curt.indexOf(user.uid) > -1);
+    var yid = ytId(x.videoUrl);
+    return h("div", { className: "card post" },
+      h("div", { className: "autor" },
+        h("div", null, h("div", { className: "nome" }, x.autorNome || "Ouvinte"),
+          h("div", { className: "sub" }, tempoAtras(x.publicadoEm || x.criadoEm))),
+        p.tag ? h("span", { className: "tag" }, p.tag) : null
+      ),
+      x.texto ? h("p", null, x.texto) : null,
+      x.imagem ? h("img", { src: x.imagem, alt: "", loading: "lazy" }) : null,
+      yid ? h("div", { className: "video" }, h("iframe", { src: "https://www.youtube.com/embed/" + yid + "?playsinline=1", allow: "encrypted-media; picture-in-picture", allowFullScreen: true, loading: "lazy" }))
+        : (x.videoUrl ? h("a", { href: x.videoUrl, target: "_blank", rel: "noopener", className: "btn sec mt" }, "▶ Abrir vídeo") : null),
+      h("div", { className: "acoes" },
+        p.onCurtir ? h("button", { className: ja ? "curtido" : "", onClick: function () { p.onCurtir(x, ja); } }, (ja ? "♥ " : "♡ ") + curt.length) : null,
+        p.children
+      )
+    );
+  }
+
+  /* ---------- Aba Mural ---------- */
+  function Mural(p) {
+    var s1 = useState(null), posts = s1[0], setPosts = s1[1];
+    var s2 = useState(""), erro = s2[0], setErro = s2[1];
+    useEffect(function () {
+      return db.collection("mural").orderBy("publicadoEm", "desc").limit(40)
+        .onSnapshot(function (s) { setPosts(docs(s)); setErro(""); }, function (e) { setErro(msgErro(e)); setPosts([]); });
+    }, []);
+    function curtir(x, ja) {
+      if (!p.user) { alert("Entre na sua conta (aba Enviar) para curtir."); return; }
+      var FV = firebase.firestore.FieldValue;
+      db.collection("mural").doc(x.id).update({ curtidas: ja ? FV.arrayRemove(p.user.uid) : FV.arrayUnion(p.user.uid) })
+        .catch(function (e) { alert(msgErro(e)); });
+    }
+    function apagar(x) {
+      if (!confirm("Apagar esta publicação do mural?")) return;
+      db.collection("mural").doc(x.id).delete().catch(function (e) { alert(msgErro(e)); });
+    }
+    if (posts === null) return h("div", { className: "carregando" }, "Carregando mural…");
+    return h("div", null,
+      h("div", { className: "titulo" }, "📸 Mural da galera"),
+      erro ? h("div", { className: "msg erro" }, erro) : null,
+      posts.length === 0 ? h("div", { className: "vazio" }, "Ainda não há publicações. Seja o primeiro na aba Enviar!") : null,
+      posts.map(function (x) {
+        return h(Post, { key: x.id, post: x, user: p.user, onCurtir: curtir },
+          p.admin ? h("button", { onClick: function () { apagar(x); } }, "🗑 Apagar") : null);
+      })
+    );
+  }
+
+  /* ---------- Login / Cadastro ---------- */
+  function Login() {
+    var s1 = useState("entrar"), modo = s1[0], setModo = s1[1];
+    var s2 = useState(""), nome = s2[0], setNome = s2[1];
+    var s3 = useState(""), email = s3[0], setEmail = s3[1];
+    var s4 = useState(""), senha = s4[0], setSenha = s4[1];
+    var s5 = useState(false), ocupado = s5[0], setOcupado = s5[1];
+    var s6 = useState({ t: "", tipo: "" }), msg = s6[0], setMsg = s6[1];
+
+    function enviar(ev) {
+      ev.preventDefault();
+      var em = String(email || "").trim().toLowerCase();
+      if (!em || !senha) { setMsg({ t: "Preencha e-mail e senha.", tipo: "erro" }); return; }
+      setOcupado(true); setMsg({ t: "", tipo: "" });
+      var pr;
+      if (modo === "criar") {
+        var nm = String(nome || "").trim();
+        if (!nm) { setOcupado(false); setMsg({ t: "Digite seu nome.", tipo: "erro" }); return; }
+        pr = auth.createUserWithEmailAndPassword(em, senha).then(function (c) {
+          return c.user.updateProfile({ displayName: nm.slice(0, 40) }).then(function () { return c.user.reload(); });
+        });
+      } else {
+        pr = auth.signInWithEmailAndPassword(em, senha);
+      }
+      pr.catch(function (e) { setMsg({ t: msgErro(e), tipo: "erro" }); }).then(function () { setOcupado(false); });
+    }
+    function esqueci() {
+      var em = String(email || "").trim().toLowerCase();
+      if (!em) { setMsg({ t: "Digite seu e-mail acima primeiro.", tipo: "erro" }); return; }
+      auth.sendPasswordResetEmail(em).then(function () { setMsg({ t: "Enviamos um link para redefinir a senha.", tipo: "ok" }); })
+        .catch(function (e) { setMsg({ t: msgErro(e), tipo: "erro" }); });
+    }
+    return h("form", { className: "card", onSubmit: enviar },
+      h("div", { className: "titulo" }, "Entre para publicar"),
+      h("div", { className: "abas2" },
+        h("button", { type: "button", className: modo === "entrar" ? "on" : "", onClick: function () { setModo("entrar"); } }, "Entrar"),
+        h("button", { type: "button", className: modo === "criar" ? "on" : "", onClick: function () { setModo("criar"); } }, "Criar conta")),
+      modo === "criar" ? h("div", null, h("label", null, "Seu nome"),
+        h("input", { type: "text", value: nome, onChange: function (e) { setNome(e.target.value); }, maxLength: 40 })) : null,
+      h("label", null, "E-mail"),
+      h("input", { type: "email", value: email, autoComplete: "email", onChange: function (e) { setEmail(e.target.value); } }),
+      h("label", null, "Senha"),
+      h("input", { type: "password", value: senha, autoComplete: modo === "criar" ? "new-password" : "current-password", onChange: function (e) { setSenha(e.target.value); } }),
+      h("button", { className: "btn mt", type: "submit", disabled: ocupado }, ocupado ? "Aguarde…" : (modo === "criar" ? "Criar conta" : "Entrar")),
+      modo === "entrar" ? h("button", { type: "button", className: "btn sec mt", onClick: esqueci }, "Esqueci a senha") : null,
+      msg.t ? h("div", { className: "msg " + msg.tipo }, msg.t) : null
+    );
+  }
+
+  /* ---------- Aba Enviar ---------- */
+  function Enviar(p) {
+    var user = p.user;
+    var s1 = useState(""), texto = s1[0], setTexto = s1[1];
+    var s2 = useState(""), foto = s2[0], setFoto = s2[1];
+    var s3 = useState(""), video = s3[0], setVideo = s3[1];
+    var s4 = useState(false), ocupado = s4[0], setOcupado = s4[1];
+    var s5 = useState({ t: "", tipo: "" }), msg = s5[0], setMsg = s5[1];
+    var s6 = useState([]), meus = s6[0], setMeus = s6[1];
+    var inputRef = useRef(null);
+
+    useEffect(function () {
+      if (!user || p.admin) { setMeus([]); return; }
+      return db.collection("fila").where("autorId", "==", user.uid).onSnapshot(function (s) {
+        var l = docs(s);
+        l.sort(function (a, b) { return ((b.criadoEm && b.criadoEm.seconds) || 0) - ((a.criadoEm && a.criadoEm.seconds) || 0); });
+        setMeus(l);
+      }, function () { setMeus([]); });
+    }, [user && user.uid, p.admin]);
+
+    if (!p.authPronto) return h("div", { className: "carregando" }, "Carregando…");
+    if (!user) return h(Login);
+
+    function escolherFoto(e) {
+      var f = e.target.files && e.target.files[0];
+      e.target.value = "";
+      if (!f) return;
+      setMsg({ t: "Preparando foto…", tipo: "" });
+      comprimirImagem(f).then(function (d) { setFoto(d); setMsg({ t: "", tipo: "" }); })
+        .catch(function (err) { setMsg({ t: err.message, tipo: "erro" }); });
+    }
+    function publicar() {
+      var t = String(texto || "").trim(), v = String(video || "").trim();
+      if (!t && !foto && !v) { setMsg({ t: "Escreva algo, escolha uma foto ou cole um link de vídeo.", tipo: "erro" }); return; }
+      if (v && !/^https?:\/\//i.test(v)) { setMsg({ t: "O link do vídeo precisa começar com https://", tipo: "erro" }); return; }
+      setOcupado(true); setMsg({ t: "", tipo: "" });
+      var dados = {
+        texto: t.slice(0, 1000), imagem: foto || "", videoUrl: v,
+        autorId: user.uid, autorNome: String(user.displayName || (user.email || "").split("@")[0] || "Ouvinte"),
+        criadoEm: agora(), curtidas: []
+      };
+      var pr;
+      if (p.admin) { dados.publicadoEm = agora(); pr = db.collection("mural").add(dados); }
+      else pr = db.collection("fila").add(dados);
+      pr.then(function () {
+        setTexto(""); setFoto(""); setVideo("");
+        setMsg({ t: p.admin ? "Publicado no mural!" : "Enviado! Vai aparecer no mural depois da aprovação.", tipo: "ok" });
+      }).catch(function (e) { setMsg({ t: msgErro(e), tipo: "erro" }); })
+        .then(function () { setOcupado(false); });
+    }
+    function cancelar(x) {
+      if (!confirm("Cancelar este envio?")) return;
+      db.collection("fila").doc(x.id).delete().catch(function (e) { alert(msgErro(e)); });
+    }
+
+    return h("div", null,
+      h("div", { className: "sub", style: { marginBottom: 12 } },
+        "Logado como ", h("b", null, user.displayName || user.email), " · ",
+        h("a", { href: "#", style: { color: "var(--ciano)" }, onClick: function (e) { e.preventDefault(); auth.signOut(); } }, "Sair")),
+      h("div", { className: "card" },
+        h("div", { className: "titulo" }, "Publicar no mural"),
+        h("label", null, "Mensagem"),
+        h("textarea", { value: texto, maxLength: 1000, placeholder: "Manda um salve, conta da sua arte…", onChange: function (e) { setTexto(e.target.value); } }),
+        h("input", { ref: inputRef, type: "file", accept: "image/*", style: { display: "none" }, onChange: escolherFoto }),
+        foto ? h("div", { className: "preview" }, h("img", { src: foto, alt: "" }),
+          h("button", { type: "button", onClick: function () { setFoto(""); } }, "✕ Remover"))
+          : h("button", { type: "button", className: "btn sec mt", onClick: function () { inputRef.current && inputRef.current.click(); } }, "📷 Escolher foto"),
+        h("label", null, "Link de vídeo (YouTube, opcional)"),
+        h("input", { type: "url", value: video, placeholder: "https://youtube.com/…", onChange: function (e) { setVideo(e.target.value); } }),
+        h("button", { className: "btn mt", disabled: ocupado, onClick: publicar }, ocupado ? "Enviando…" : "Publicar"),
+        msg.t ? h("div", { className: "msg " + msg.tipo }, msg.t) : null
+      ),
+      meus.length ? h("div", null,
+        h("div", { className: "titulo" }, "Aguardando aprovação"),
+        meus.map(function (x) {
+          return h(Post, { key: x.id, post: x, user: user, tag: "PENDENTE" },
+            h("button", { onClick: function () { cancelar(x); } }, "Cancelar"));
+        })) : null
+    );
+  }
+
+  /* ---------- Aba Admin ---------- */
+  function Admin(p) {
+    var cfg = p.cfg;
+    var s1 = useState(null), form = s1[0], setForm = s1[1];
+    var s2 = useState(""), convite = s2[0], setConvite = s2[1];
+    var s3 = useState({ t: "", tipo: "" }), msg = s3[0], setMsg = s3[1];
+    var s4 = useState([]), fila = s4[0], setFila = s4[1];
+    var s5 = useState(false), salvando = s5[0], setSalvando = s5[1];
+
+    useEffect(function () {
+      if (form === null) setForm({
+        streamUrl: cfg.streamUrl || "", programa: cfg.programa || "", locutor: cfg.locutor || "",
+        noAr: !!cfg.noAr, aoVivoVideo: !!cfg.aoVivoVideo, youtubeCanal: cfg.youtubeCanal || "", youtubeVideo: cfg.youtubeVideo || ""
+      });
+    }, [cfg]);
+    useEffect(function () {
+      if (!p.admin) return;
+      db.collection("config").doc("privado").get().then(function (d) {
+        var x = d.exists ? (d.data() || {}) : {}; setConvite(x.linkConvidado || "");
+      }).catch(function () {});
+      return db.collection("fila").onSnapshot(function (s) {
+        var l = docs(s);
+        l.sort(function (a, b) { return ((a.criadoEm && a.criadoEm.seconds) || 0) - ((b.criadoEm && b.criadoEm.seconds) || 0); });
+        setFila(l);
+      }, function (e) { setMsg({ t: msgErro(e), tipo: "erro" }); });
+    }, [p.admin]);
+
+    if (!p.admin) return h("div", { className: "card" }, h("div", { className: "titulo" }, "Área restrita"),
+      h("div", { className: "sub" }, "Apenas o administrador da rádio acessa esta área."));
+    if (!form) return h("div", { className: "carregando" }, "Carregando…");
+
+    function campo(nome, rotulo, ph, tipo) {
+      return h("div", null, h("label", null, rotulo),
+        h("input", { type: tipo || "text", value: form[nome], placeholder: ph || "",
+          onChange: function (e) { var n = Object.assign({}, form); n[nome] = e.target.value; setForm(n); } }));
+    }
+    function marca(nome, rotulo) {
+      return h("label", { className: "chk" },
+        h("input", { type: "checkbox", checked: !!form[nome], onChange: function (e) { var n = Object.assign({}, form); n[nome] = e.target.checked; setForm(n); } }),
+        rotulo);
+    }
+    function salvar() {
+      setSalvando(true); setMsg({ t: "", tipo: "" });
+      var dados = {
+        streamUrl: String(form.streamUrl || "").trim(), programa: String(form.programa || "").trim(),
+        locutor: String(form.locutor || "").trim(), noAr: !!form.noAr, aoVivoVideo: !!form.aoVivoVideo,
+        youtubeCanal: String(form.youtubeCanal || "").trim(), youtubeVideo: String(form.youtubeVideo || "").trim(),
+        atualizadoEm: agora()
+      };
+      Promise.all([
+        db.collection("config").doc("radio").set(dados, { merge: true }),
+        db.collection("config").doc("privado").set({ linkConvidado: String(convite || "").trim() }, { merge: true })
+      ]).then(function () { setMsg({ t: "Salvo! Já aparece para todos os ouvintes.", tipo: "ok" }); })
+        .catch(function (e) { setMsg({ t: msgErro(e), tipo: "erro" }); })
+        .then(function () { setSalvando(false); });
+    }
+    function convidarWhats() {
+      var l = String(convite || "").trim();
+      if (!l) { alert("Cole primeiro o link de convidado do StreamYard."); return; }
+      window.open("https://wa.me/?text=" + encodeURIComponent("Você foi convidado para entrar ao vivo na Rádio Artmania! Entre por este link na hora combinada: " + l), "_blank");
+    }
+    function aprovar(x) {
+      var d = Object.assign({}, x); delete d.id; d.publicadoEm = agora();
+      var b = db.batch();
+      b.set(db.collection("mural").doc(x.id), d);
+      b.delete(db.collection("fila").doc(x.id));
+      b.commit().catch(function (e) { alert(msgErro(e)); });
+    }
+    function recusar(x) {
+      if (!confirm("Recusar e apagar esta publicação?")) return;
+      db.collection("fila").doc(x.id).delete().catch(function (e) { alert(msgErro(e)); });
+    }
+
+    return h("div", null,
+      h("div", { className: "card" },
+        h("div", { className: "titulo" }, "🎙 Transmissão"),
+        campo("streamUrl", "Link do stream de áudio", "https://stream.zeno.fm/…", "url"),
+        campo("programa", "Nome do programa atual", "Ex.: Manhã Artmania"),
+        campo("locutor", "Locutor(a)", "Ex.: André"),
+        marca("noAr", "Estou AO VIVO no áudio (mostra \"NO AR\")"),
+        h("hr", { style: { border: 0, borderTop: "1px solid var(--borda)", margin: "18px 0 4px" } }),
+        marca("aoVivoVideo", "Mostrar vídeo ao vivo do YouTube"),
+        campo("youtubeCanal", "ID do canal do YouTube (começa com UC…)", "UCxxxxxxxxxxxxxxxxxxxxxx"),
+        campo("youtubeVideo", "OU link da live específica (tem prioridade)", "https://youtube.com/live/…", "url"),
+        h("hr", { style: { border: 0, borderTop: "1px solid var(--borda)", margin: "18px 0 4px" } }),
+        h("label", null, "Link de convidado do StreamYard (só você vê)"),
+        h("input", { type: "url", value: convite, placeholder: "https://streamyard.com/…", onChange: function (e) { setConvite(e.target.value); } }),
+        h("button", { className: "btn verde mt", type: "button", onClick: convidarWhats }, "Convidar pelo WhatsApp"),
+        h("button", { className: "btn mt", disabled: salvando, onClick: salvar }, salvando ? "Salvando…" : "💾 Salvar tudo"),
+        msg.t ? h("div", { className: "msg " + msg.tipo }, msg.t) : null
+      ),
+      h("div", { className: "titulo" }, "Fila de aprovação (" + fila.length + ")"),
+      fila.length === 0 ? h("div", { className: "vazio" }, "Nenhuma publicação esperando.") : null,
+      fila.map(function (x) {
+        return h(Post, { key: x.id, post: x, user: p.user, tag: "PENDENTE" },
+          h("button", { style: { color: "var(--verde)" }, onClick: function () { aprovar(x); } }, "✔ Aprovar"),
+          h("button", { style: { color: "#ff7aa8" }, onClick: function () { recusar(x); } }, "✕ Recusar"));
+      })
+    );
+  }
+
+  /* ---------- App principal ---------- */
+  function App() {
+    var s1 = useState("radio"), aba = s1[0], setAba = s1[1];
+    var s2 = useState(null), user = s2[0], setUser = s2[1];
+    var s3 = useState(false), authPronto = s3[0], setAuthPronto = s3[1];
+    var s4 = useState({}), cfg = s4[0], setCfg = s4[1];
+    var s5 = useState(""), cfgErro = s5[0], setCfgErro = s5[1];
+    var s6 = useState(false), tocando = s6[0], setTocando = s6[1];
+    var s7 = useState(false), carregando = s7[0], setCarregando = s7[1];
+    var audioRef = useRef(null);
+    var admin = !!(user && isAdminEmail(user.email));
+
+    useEffect(function () {
+      return auth.onAuthStateChanged(function (u) { setUser(u || null); setAuthPronto(true); });
+    }, []);
+    useEffect(function () {
+      return db.collection("config").doc("radio").onSnapshot(function (s) {
+        setCfg(s.exists ? (s.data() || {}) : {}); setCfgErro("");
+      }, function (e) { setCfgErro(msgErro(e)); });
+    }, []);
+    useEffect(function () {
+      if ("mediaSession" in navigator && window.MediaMetadata) {
+        try {
+          navigator.mediaSession.metadata = new MediaMetadata({ title: cfg.programa || "Rádio Artmania", artist: cfg.locutor || "Ao vivo", album: "Artmania" });
+          navigator.mediaSession.setActionHandler("play", function () { tocar(); });
+          navigator.mediaSession.setActionHandler("pause", function () { parar(); });
+        } catch (e) {}
+      }
+    }, [cfg.programa, cfg.locutor, cfg.streamUrl]);
+
+    function tocar() {
+      var a = audioRef.current;
+      var url = String(cfg.streamUrl || "").trim();
+      if (!a) return;
+      if (!url) { alert("A rádio ainda não foi configurada."); return; }
+      a.src = url;
+      setCarregando(true);
+      var pr = a.play();
+      if (pr && pr.then) pr.then(function () { setTocando(true); setCarregando(false); })
+        .catch(function (e) { setCarregando(false); setTocando(false); if (e && e.name !== "AbortError") alert("Não foi possível tocar a rádio agora. Tente de novo em instantes."); });
+    }
+    function parar() {
+      var a = audioRef.current; if (!a) return;
+      a.pause(); a.removeAttribute("src"); a.load();
+      setTocando(false); setCarregando(false);
+    }
+    function toggle() { if (tocando || carregando) parar(); else tocar(); }
+
+    var tela;
+    if (aba === "radio") tela = h(Radio, { cfg: cfg, tocando: tocando, carregando: carregando, toggle: toggle, parar: parar });
+    else if (aba === "mural") tela = h(Mural, { user: user, admin: admin });
+    else if (aba === "enviar") tela = h(Enviar, { user: user, admin: admin, authPronto: authPronto });
+    else tela = h(Admin, { user: user, admin: admin, cfg: cfg });
+
+    var abas = [["radio", "📻", "Rádio"], ["mural", "📸", "Mural"], ["enviar", "➕", "Enviar"]];
+    if (admin) abas.push(["admin", "⚙️", "Admin"]);
+
+    return h("div", { className: "app" },
+      h("audio", {
+        ref: audioRef, preload: "none",
+        onPlaying: function () { setCarregando(false); setTocando(true); },
+        onWaiting: function () { setCarregando(true); },
+        onError: function () { if (audioRef.current && audioRef.current.getAttribute("src")) { setTocando(false); setCarregando(false); } }
+      }),
+      h(Header, { cfg: cfg }),
+      cfgErro ? h("div", { className: "aviso erro" }, cfgErro) : null,
+      h("main", { className: "conteudo" }, tela),
+      aba !== "radio" && (tocando || carregando) ? h("div", { className: "mini" }, h("div", { className: "in" },
+        h("button", { onClick: toggle, "aria-label": "Pausar" }, PAUSE),
+        h("div", { className: "t" }, h("b", null, cfg.programa || "Rádio Artmania"), h("span", { className: "sub" }, carregando ? "Conectando…" : "Tocando agora"))
+      )) : null,
+      h("nav", null, h("div", { className: "in" }, abas.map(function (a) {
+        return h("button", { key: a[0], className: aba === a[0] ? "on" : "", onClick: function () { setAba(a[0]); window.scrollTo(0, 0); } },
+          h("span", null, a[1]), a[2]);
+      })))
+    );
+  }
+
+  function Setup() {
+    return h("div", { className: "setup" },
+      h("img", { src: LOGO, alt: "", className: "logo-grande" }),
+      h("div", { className: "logo", style: { marginBottom: 16, textAlign: "center" } }, "ARTMANIA"),
+      h("p", null, "Falta configurar o Firebase. Abra o arquivo ", h("code", null, "index.html"),
+        " e troque os ", h("code", null, "COLE_AQUI"), " pelos dados do seu projeto Firebase."));
+  }
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function (e) { console.warn("SW:", e); }); });
+  }
+
+  ReactDOM.createRoot(document.getElementById("root")).render(configOk ? h(App) : h(Setup));
+})();
+</script>
+</body>
+</html>
