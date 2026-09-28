@@ -1,19 +1,16 @@
 {
-  "name": "Rádio Artmania",
-  "short_name": "Artmania",
-  "description": "Rádio online Pipa Arte Mania: música, lives, fotos e vídeos da galera.",
-  "id": "./",
-  "start_url": "./index.html",
+  "name": "Rádio Yeshua",
+  "short_name": "Rádio Yeshua",
+  "description": "Rádio Yeshua — Louvor e Palavra 24h",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0d0a14",
-  "theme_color": "#0d0a14",
+  "background_color": "#07121b",
+  "theme_color": "#07121b",
   "lang": "pt-BR",
-  "categories": ["music", "entertainment", "social"],
   "icons": [
-    { "src": "icon-192-3.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icon-512-2.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "icon-yeshua-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-yeshua-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }

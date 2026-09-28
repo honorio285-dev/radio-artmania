@@ -4,18 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="google" content="notranslate">
-<meta name="theme-color" content="#0d0a14">
-<title>Rádio Artmania</title>
+<meta name="theme-color" content="#07121b">
+<title>Rádio Yeshua</title>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" href="icon-192-3.png">
-<link rel="apple-touch-icon" href="icon-192-3.png">
+<link rel="icon" type="image/png" href="icon-yeshua-192.png">
+<link rel="apple-touch-icon" href="icon-yeshua-192.png">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0d0a14; --card:#181222; --card2:#221a30; --txt:#f3eefc; --sub:#a99bbd;
-    --rosa:#ff2e88; --ciano:#22d3ee; --amarelo:#ffd23f; --verde:#2ee59d; --borda:#2e2440;
+    --bg:#07121b; --card:#0e1d2a; --card2:#152a3b; --txt:#eef4f8; --sub:#93a9ba;
+    --rosa:#1c9fd0; --ciano:#f4c65a; --amarelo:#f4c65a; --verde:#2ee59d; --borda:#1f3a50;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{background:var(--bg);color:var(--txt);font-family:Inter,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
@@ -23,10 +23,10 @@
   button{font-family:inherit;cursor:pointer;border:0}
   input,textarea{font-family:inherit;font-size:16px}
   .app{max-width:640px;margin:0 auto;padding-bottom:150px}
-  header{position:sticky;top:0;z-index:5;background:rgba(13,10,20,.92);backdrop-filter:blur(8px);
+  header{position:sticky;top:0;z-index:5;background:rgba(7,18,27,.92);backdrop-filter:blur(8px);
     display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--borda)}
   .logo{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:2px;line-height:1;
-    background:linear-gradient(90deg,var(--rosa),var(--amarelo),var(--ciano));-webkit-background-clip:text;background-clip:text;color:transparent}
+    background:linear-gradient(90deg,#f4c65a,#fff,#2bb3d9);-webkit-background-clip:text;background-clip:text;color:transparent}
   .logo small{display:block;font-family:Inter;font-size:10px;letter-spacing:4px;color:var(--sub);-webkit-text-fill-color:var(--sub)}
   .noar{background:var(--rosa);color:#fff;font-weight:800;font-size:12px;padding:6px 10px;border-radius:999px;letter-spacing:1px;animation:pisca 1.4s infinite}
   .offar{background:var(--card2);color:var(--sub);font-weight:600;font-size:12px;padding:6px 10px;border-radius:999px}
@@ -35,17 +35,17 @@
   .card{background:var(--card);border:1px solid var(--borda);border-radius:18px;padding:18px;margin-bottom:16px}
   .titulo{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;margin-bottom:10px}
   .sub{color:var(--sub);font-size:14px}
-  .player{text-align:center;padding:28px 18px;background:radial-gradient(circle at 50% 0%,#3a1440 0%,var(--card) 70%)}
+  .player{text-align:center;padding:28px 18px;background:radial-gradient(circle at 50% 0%,#123a55 0%,var(--card) 70%)}
   .bigplay{width:84px;height:84px;border-radius:50%;margin:14px auto 16px;display:flex;align-items:center;justify-content:center;
-    background:linear-gradient(135deg,var(--rosa),#b01cff);box-shadow:0 0 40px rgba(255,46,136,.45)}
+    background:linear-gradient(135deg,#2bb3d9,#0e5f86);box-shadow:0 0 40px rgba(43,179,217,.45)}
   .bigplay.on{animation:pulso 1.6s infinite}
-  @keyframes pulso{50%{box-shadow:0 0 70px rgba(255,46,136,.8)}}
+  @keyframes pulso{50%{box-shadow:0 0 70px rgba(43,179,217,.8)}}
   .bigplay svg{width:38px;height:38px;fill:#fff}
   .marca{display:flex;align-items:center;gap:10px}
   .logo-img{width:46px;height:46px;display:block;flex:none}
-  .logo-grande{width:150px;height:150px;display:block;margin:4px auto 12px;filter:drop-shadow(0 0 18px rgba(215,38,30,.45))}
-  .logo-grande.gira{animation:gira 12s linear infinite}
-  @keyframes gira{to{transform:rotate(360deg)}}
+  .logo-grande{width:150px;height:150px;display:block;margin:4px auto 12px;filter:drop-shadow(0 0 18px rgba(244,198,90,.4))}
+  .logo-grande.gira{animation:brilho 2.4s ease-in-out infinite}
+  @keyframes brilho{50%{filter:drop-shadow(0 0 30px rgba(244,198,90,.8))}}
   .programa{font-size:22px;font-weight:800}
   .ondas{display:flex;gap:4px;justify-content:center;height:24px;align-items:flex-end;margin-top:12px}
   .ondas i{width:5px;background:var(--ciano);border-radius:3px;animation:onda 1s infinite ease-in-out}
@@ -54,7 +54,7 @@
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 18px;border-radius:12px;font-weight:800;font-size:15px;
     background:var(--rosa);color:#fff;width:100%}
   .btn.sec{background:var(--card2);color:var(--txt);border:1px solid var(--borda)}
-  .btn.ciano{background:var(--ciano);color:#062029}
+  .btn.ciano{background:var(--ciano);color:#2a1d00}
   .btn.verde{background:var(--verde);color:#052a1b}
   .btn:disabled{opacity:.5}
   .linha{display:flex;gap:10px}
@@ -76,10 +76,10 @@
   .acoes button{background:var(--card2);color:var(--txt);padding:9px 14px;border-radius:999px;font-weight:700;font-size:14px;border:1px solid var(--borda)}
   .acoes button.curtido{color:var(--rosa);border-color:var(--rosa)}
   .aviso{padding:12px 14px;border-radius:12px;margin:12px 16px 0;font-size:14px;line-height:1.4}
-  .aviso.erro{background:#3a0f1f;border:1px solid var(--rosa)}
+  .aviso.erro{background:#3a1616;border:1px solid var(--rosa)}
   .aviso.ok{background:#0f3a28;border:1px solid var(--verde)}
   .msg{margin-top:10px;font-size:14px}
-  .msg.erro{color:#ff7aa8}.msg.ok{color:var(--verde)}
+  .msg.erro{color:#ff8a8a}.msg.ok{color:var(--verde)}
   .preview{position:relative;margin-top:10px}
   .preview img{width:100%;border-radius:12px}
   .preview button{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.7);color:#fff;border-radius:999px;padding:6px 12px;font-weight:700}
@@ -95,7 +95,7 @@
   .mini svg{width:20px;height:20px;fill:#fff}
   .mini .t{flex:1;min-width:0}
   .mini .t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}
-  nav{position:fixed;left:0;right:0;bottom:0;z-index:7;background:#120d1b;border-top:1px solid var(--borda);
+  nav{position:fixed;left:0;right:0;bottom:0;z-index:7;background:#0a1824;border-top:1px solid var(--borda);
     display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom)}
   nav .in{max-width:640px;width:100%;display:flex}
   nav button{flex:1;background:none;color:var(--sub);padding:9px 0 10px;font-size:11px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:3px}
@@ -226,7 +226,7 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
       x.id = d.id; return x;
     });
   }
-  var LOGO = "data:image/svg+xml;charset=utf-8," + encodeURIComponent("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><defs><path id=\"t\" d=\"M24,100 A76,76 0 0 1 176,100\"/><path id=\"b\" d=\"M17,100 A83,83 0 0 0 183,100\"/></defs><circle cx=\"100\" cy=\"100\" r=\"98\" fill=\"#e6e6e6\"/><circle cx=\"100\" cy=\"100\" r=\"94\" fill=\"#111\"/><circle cx=\"100\" cy=\"100\" r=\"66\" fill=\"#d7261e\"/><text font-family=\"Arial Black,Arial,Helvetica,sans-serif\" font-weight=\"900\" font-size=\"15\" fill=\"#fff\" letter-spacing=\"0.5\"><textPath href=\"#t\" startOffset=\"50%\" text-anchor=\"middle\">PIPA \u2605 ARTE \u2605 MANIA</textPath></text><text font-family=\"Arial Black,Arial,Helvetica,sans-serif\" font-weight=\"900\" font-size=\"17\" fill=\"#fff\" letter-spacing=\"1\"><textPath href=\"#b\" startOffset=\"50%\" text-anchor=\"middle\">\u2605 25/04/2022 \u2605</textPath></text><g transform=\"rotate(-18 100 96)\"><path d=\"M100 132 C88 144,114 150,102 162\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.5\" stroke-linecap=\"round\"/><path d=\"M92 141 l8 3 -7 5z M104 150 l8 -2 -4 7z\" fill=\"#ffd23f\" stroke=\"#111\" stroke-width=\"1.2\"/><polygon points=\"100,46 100,90 70,90\" fill=\"#ffd23f\"/><polygon points=\"100,46 130,90 100,90\" fill=\"#22d3ee\"/><polygon points=\"100,90 130,90 100,132\" fill=\"#ff2e88\"/><polygon points=\"100,90 100,132 70,90\" fill=\"#fff\"/><polygon points=\"100,46 130,90 100,132 70,90\" fill=\"none\" stroke=\"#111\" stroke-width=\"3\" stroke-linejoin=\"round\"/><path d=\"M100 46 V132 M70 90 H130\" stroke=\"#111\" stroke-width=\"2\"/></g><g fill=\"none\" stroke=\"#fff\" stroke-width=\"3\" stroke-linecap=\"round\"><path d=\"M138 64 a14 14 0 0 1 8 16\"/><path d=\"M143 54 a26 26 0 0 1 14 30\"/></g></svg>");
+  var LOGO = "data:image/svg+xml;charset=utf-8," + encodeURIComponent("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><defs><linearGradient id=\"g\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#f4c65a\"/><stop offset=\"1\" stop-color=\"#c8862a\"/></linearGradient><linearGradient id=\"m\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#2bb3d9\"/><stop offset=\"1\" stop-color=\"#0e5f86\"/></linearGradient><path id=\"t\" d=\"M24,100 A76,76 0 0 1 176,100\"/><path id=\"b\" d=\"M17,100 A83,83 0 0 0 183,100\"/></defs><circle cx=\"100\" cy=\"100\" r=\"99\" fill=\"url(#g)\"/><circle cx=\"100\" cy=\"100\" r=\"95\" fill=\"#07121b\"/><circle cx=\"100\" cy=\"100\" r=\"66\" fill=\"#0d2233\" stroke=\"url(#g)\" stroke-width=\"2\"/><text font-family=\"Arial Black,Arial,Helvetica,sans-serif\" font-weight=\"900\" font-size=\"17\" fill=\"#fff\" letter-spacing=\"2\"><textPath href=\"#t\" startOffset=\"50%\" text-anchor=\"middle\">RÁDIO YESHUA</textPath></text><text font-family=\"Arial Black,Arial,Helvetica,sans-serif\" font-weight=\"900\" font-size=\"13\" fill=\"#f4c65a\" letter-spacing=\"1.5\"><textPath href=\"#b\" startOffset=\"50%\" text-anchor=\"middle\">★ LEÃO DE JUDÁ ★</textPath></text><g transform=\"translate(100 104)\"><polygon fill=\"url(#m)\" points=\"0,-58 10,-44 24,-54 26,-37 42,-41 36,-25 54,-22 42,-10 57,0 42,10 52,24 36,26 40,42 24,38 20,54 8,42 0,58 -8,42 -20,54 -24,38 -40,42 -36,26 -52,24 -42,10 -57,0 -42,-10 -54,-22 -36,-25 -42,-41 -26,-37 -24,-54 -10,-44\"/><polygon fill=\"#1c8fb8\" points=\"0,-46 30,-30 44,0 30,32 0,48 -30,32 -44,0 -30,-30\"/><polygon fill=\"#c8862a\" points=\"-30,-32 -20,-44 -14,-30\"/><polygon fill=\"#c8862a\" points=\"30,-32 20,-44 14,-30\"/><polygon fill=\"#f1f4f7\" points=\"0,-36 -22,-26 -28,-4 -18,20 -8,34 0,38 0,-36\"/><polygon fill=\"#c9d3dc\" points=\"0,-36 22,-26 28,-4 18,20 8,34 0,38 0,-36\"/><polygon fill=\"#dfe6ec\" points=\"0,-36 -8,-14 0,6 8,-14\"/><polygon fill=\"#07121b\" points=\"-20,-8 -8,-6 -12,0\"/><polygon fill=\"#07121b\" points=\"20,-8 8,-6 12,0\"/><circle cx=\"-12\" cy=\"-5\" r=\"1.6\" fill=\"#f4c65a\"/><circle cx=\"12\" cy=\"-5\" r=\"1.6\" fill=\"#f4c65a\"/><polygon fill=\"#07121b\" points=\"-7,12 7,12 0,20\"/><path d=\"M0,20 V26 M0,26 Q-6,30 -11,27 M0,26 Q6,30 11,27\" fill=\"none\" stroke=\"#07121b\" stroke-width=\"1.8\" stroke-linecap=\"round\"/><path d=\"M-4,-50 H4 M0,-56 V-40\" stroke=\"#f4c65a\" stroke-width=\"3\" stroke-linecap=\"round\"/></g></svg>");
   function listaValida(c) {
     return (Array.isArray(c && c.playlist) ? c.playlist : []).filter(function (m) { return m && (m.url || m.yt) && Number(m.duracao) > 0; });
   }
@@ -286,8 +286,8 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
   /* ---------- Cabeçalho ---------- */
   function Header(p) {
     return h("header", null,
-      h("div", { className: "marca" }, h("img", { src: LOGO, alt: "Artmania", className: "logo-img" }),
-        h("div", { className: "logo" }, "ARTMANIA", h("small", null, "RÁDIO ONLINE"))),
+      h("div", { className: "marca" }, h("img", { src: LOGO, alt: "Rádio Yeshua", className: "logo-img" }),
+        h("div", { className: "logo" }, "YESHUA", h("small", null, "RÁDIO ONLINE"))),
       p.cfg.noAr ? h("div", { className: "noar" }, "● NO AR") : h("div", { className: "offar" }, "Programação")
     );
   }
@@ -307,18 +307,18 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
     function assistir() { p.parar(); setVerVideo(true); }
     function compartilhar() {
       var url = location.href.split("#")[0];
-      if (navigator.share) navigator.share({ title: "Rádio Artmania", text: "Ouça a Rádio Artmania!", url: url }).catch(function () {});
-      else window.open("https://wa.me/?text=" + encodeURIComponent("Ouça a Rádio Artmania! " + url), "_blank");
+      if (navigator.share) navigator.share({ title: "Rádio Yeshua", text: "Ouça a Rádio Yeshua!", url: url }).catch(function () {});
+      else window.open("https://wa.me/?text=" + encodeURIComponent("Ouça a Rádio Yeshua! " + url), "_blank");
     }
 
     return h("div", null,
       h("div", { className: "card player" },
-        h("img", { src: LOGO, alt: "Rádio Artmania", className: "logo-grande" + (p.tocando ? " gira" : "") }),
-        h("div", { className: "sub" }, cfg.noAr ? "AO VIVO AGORA" : "TOCANDO NA ARTMANIA"),
+        h("img", { src: LOGO, alt: "Rádio Yeshua", className: "logo-grande" + (p.tocando ? " gira" : "") }),
+        h("div", { className: "sub" }, cfg.noAr ? "AO VIVO AGORA" : "TOCANDO NA RÁDIO YESHUA"),
         h("button", { className: "bigplay" + (p.tocando ? " on" : ""), onClick: p.toggle, "aria-label": "Tocar/Pausar" },
           p.tocando || p.carregando ? PAUSE : PLAY),
-        h("div", { className: "programa" }, cfg.programa || "Rádio Artmania"),
-        h("div", { className: "sub", style: { marginTop: 4 } }, cfg.locutor ? "com " + cfg.locutor : "Arte, música e cultura 24h"),
+        h("div", { className: "programa" }, cfg.programa || "Rádio Yeshua"),
+        h("div", { className: "sub", style: { marginTop: 4 } }, cfg.locutor ? "com " + cfg.locutor : "Louvor e Palavra 24h"),
         p.musicaAtual ? h("div", { style: { marginTop: 10, fontWeight: 700, color: "var(--ciano)" } }, "♪ " + p.musicaAtual) : null,
         p.carregando ? h("div", { className: "sub mt" }, "Conectando…")
           : p.tocando ? h("div", { className: "ondas" }, h("i"), h("i"), h("i"), h("i"), h("i"))
@@ -503,7 +503,7 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
       h("div", { className: "card" },
         h("div", { className: "titulo" }, "Publicar no mural"),
         h("label", null, "Mensagem"),
-        h("textarea", { value: texto, maxLength: 1000, placeholder: "Manda um salve, conta da sua arte…", onChange: function (e) { setTexto(e.target.value); } }),
+        h("textarea", { value: texto, maxLength: 1000, placeholder: "Manda um salve, compartilhe um testemunho, peça uma oração…", onChange: function (e) { setTexto(e.target.value); } }),
         h("input", { ref: inputRef, type: "file", accept: "image/*", style: { display: "none" }, onChange: escolherFoto }),
         foto ? h("div", { className: "preview" }, h("img", { src: foto, alt: "" }),
           h("button", { type: "button", onClick: function () { setFoto(""); } }, "✕ Remover"))
@@ -641,7 +641,7 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
     function convidarWhats() {
       var l = String(convite || "").trim();
       if (!l) { alert("Cole primeiro o link de convidado do StreamYard."); return; }
-      window.open("https://wa.me/?text=" + encodeURIComponent("Você foi convidado para entrar ao vivo na Rádio Artmania! Entre por este link na hora combinada: " + l), "_blank");
+      window.open("https://wa.me/?text=" + encodeURIComponent("Você foi convidado para entrar ao vivo na Rádio Yeshua! Entre por este link na hora combinada: " + l), "_blank");
     }
     function aprovar(x) {
       var d = Object.assign({}, x); delete d.id; d.publicadoEm = agora();
@@ -659,7 +659,7 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
       h("div", { className: "card" },
         h("div", { className: "titulo" }, "🎙 Transmissão"),
         campo("streamUrl", "Link do stream de áudio (deixe em branco para usar as Músicas da rádio)", "https://…", "url"),
-        campo("programa", "Nome do programa atual", "Ex.: Manhã Artmania"),
+        campo("programa", "Nome do programa atual", "Ex.: Manhã com Yeshua"),
         campo("locutor", "Locutor(a)", "Ex.: André"),
         marca("noAr", "Estou AO VIVO no áudio (mostra \"NO AR\")"),
         h("hr", { style: { border: 0, borderTop: "1px solid var(--borda)", margin: "18px 0 4px" } }),
@@ -743,7 +743,7 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
     useEffect(function () {
       if ("mediaSession" in navigator && window.MediaMetadata) {
         try {
-          navigator.mediaSession.metadata = new MediaMetadata({ title: musicaAtual || cfg.programa || "Rádio Artmania", artist: musicaAtual ? "Rádio Artmania" : (cfg.locutor || "Ao vivo"), album: "Artmania", artwork: [{ src: "icon-512-2.png", sizes: "512x512", type: "image/png" }] });
+          navigator.mediaSession.metadata = new MediaMetadata({ title: musicaAtual || cfg.programa || "Rádio Yeshua", artist: musicaAtual ? "Rádio Yeshua" : (cfg.locutor || "Ao vivo"), album: "Rádio Yeshua", artwork: [{ src: "icon-yeshua-512.png", sizes: "512x512", type: "image/png" }] });
           navigator.mediaSession.setActionHandler("play", function () { tocar(); });
           navigator.mediaSession.setActionHandler("pause", function () { parar(); });
         } catch (e) {}
@@ -885,7 +885,7 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
       h("main", { className: "conteudo" }, tela),
       aba !== "radio" && (tocando || carregando) ? h("div", { className: "mini" }, h("div", { className: "in" },
         h("button", { onClick: toggle, "aria-label": "Pausar" }, PAUSE),
-        h("div", { className: "t" }, h("b", null, cfg.programa || "Rádio Artmania"), h("span", { className: "sub" }, carregando ? "Conectando…" : (musicaAtual ? "♪ " + musicaAtual : "Tocando agora")))
+        h("div", { className: "t" }, h("b", null, cfg.programa || "Rádio Yeshua"), h("span", { className: "sub" }, carregando ? "Conectando…" : (musicaAtual ? "♪ " + musicaAtual : "Tocando agora")))
       )) : null,
       h("nav", null, h("div", { className: "in" }, abas.map(function (a) {
         return h("button", { key: a[0], className: aba === a[0] ? "on" : "", onClick: function () { setAba(a[0]); window.scrollTo(0, 0); } },
@@ -897,7 +897,7 @@ var ADMIN_EMAILS = ["honorio285@gmail.com"];
   function Setup() {
     return h("div", { className: "setup" },
       h("img", { src: LOGO, alt: "", className: "logo-grande" }),
-      h("div", { className: "logo", style: { marginBottom: 16, textAlign: "center" } }, "ARTMANIA"),
+      h("div", { className: "logo", style: { marginBottom: 16, textAlign: "center" } }, "YESHUA"),
       h("p", null, "Falta configurar o Firebase. Abra o arquivo ", h("code", null, "index.html"),
         " e troque os ", h("code", null, "COLE_AQUI"), " pelos dados do seu projeto Firebase."));
   }
